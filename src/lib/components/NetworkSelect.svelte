@@ -1,0 +1,73 @@
+<script lang="ts">
+  import { ChevronDown } from "lucide-svelte";
+  import { NETWORKS } from "$lib/resources/networks";
+  import { selectedNetwork } from "$lib/stores";
+  import { createPopover, melt } from "@melt-ui/svelte";
+  import { fade } from "svelte/transition";
+  import { writable } from "svelte/store";
+
+  const open = writable(false);
+  const {
+    elements: { trigger, content },
+  } = createPopover({ open });
+
+  $: networkMeta = $selectedNetwork && NETWORKS[$selectedNetwork.chainId];
+  let networks = Object.values(NETWORKS).sort((a, b) =>
+    a === b ? 0 : a.prod ? -1 : 1
+  );
+</script>
+
+{#if networkMeta}
+  <button
+    class="p-1.5 button text-xs text-bold space-x-1 button overflow-auto w-fit"
+    use:melt={$trigger}
+    aria-haspopup="true"
+    aria-label="Change Network"
+  >
+    <svelte:component this={networkMeta.icon} class="w-4 h-4" />
+    <p class="overflow-hidden overflow-ellipsis whitespace-nowrap flex-shrink">
+      {networkMeta.name}
+      <span class="text-gray-400">({networkMeta.chainId})</span>
+    </p>
+    <ChevronDown class="w-4 h-4" />
+  </button>
+{/if}
+
+{#if $open}
+  <div use:melt={$content} class="content" transition:fade={{ duration: 100 }}>
+    <div class="flex flex-col items-stretch gap-1">
+      {#each networks as meta}
+        <button
+          class="p-1.5 button text-xs text-bold space-x-1 button justify-between"
+          class:active={$selectedNetwork.chainId === meta.chainId}
+          aria-label="Change Network"
+          on:click={() => {
+            $selectedNetwork = { chainId: meta.chainId };
+            $open = false;
+          }}
+        >
+          <div class="flex flex-row space-x-1">
+            <svelte:component this={meta.icon} class="w-4 h-4" />
+            <p>
+              {meta.name}
+            </p>
+          </div>
+          <span class="text-gray-400">({meta.chainId})</span>
+        </button>
+      {/each}
+    </div>
+  </div>
+{/if}
+
+<style lang="postcss">
+  .button {
+    @apply rounded-lg border border-gray-200 flex flex-row items-center transition-colors;
+    @apply hover:bg-gray-200;
+  }
+  .active {
+    @apply border-blue-500;
+  }
+  .content {
+    @apply z-20 rounded-lg bg-white p-3 pt-2 shadow-sm border border-gray-100;
+  }
+</style>

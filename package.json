@@ -1,0 +1,41 @@
+{
+  "name": "kujira-svelte",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@melt-ui/pp": "^0.1.2",
+    "@melt-ui/svelte": "^0.49.1",
+    "@sveltejs/adapter-auto": "^2.0.0",
+    "@sveltejs/kit": "^1.20.4",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
+    "svelte": "^4.0.5",
+    "svelte-check": "^3.4.3",
+    "svelte-copy": "^1.4.1",
+    "svelte-sequential-preprocessor": "^2.0.1",
+    "tailwindcss": "^3.3.3",
+    "tslib": "^2.4.1",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.2"
+  },
+  "type": "module",
+  "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.31.1",
+    "@cosmjs/proto-signing": "^0.31.1",
+    "@cosmjs/stargate": "^0.31.1",
+    "@cosmjs/tendermint-rpc": "^0.31.1",
+    "@formkit/auto-animate": "^0.8.0",
+    "@keplr-wallet/types": "^0.12.25",
+    "@leapwallet/cosmos-snap-provider": "^0.1.22",
+    "@square/svelte-store": "^1.0.17",
+    "@terra-money/station-connector": "^1.0.15",
+    "lucide-svelte": "^0.279.0"
+  }
+}
