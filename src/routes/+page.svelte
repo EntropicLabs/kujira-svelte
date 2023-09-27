@@ -20,4 +20,11 @@
   <div class="w-full flex items-center justify-center m-4">
     <WalletWidget />
   </div>
+  <a
+    href="https://github.com/EntropicLabs/kujira-svelte"
+    class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+    target="_blank"
+  >
+    View on Github
+  </a>
 </div>
