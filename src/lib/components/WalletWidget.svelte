@@ -1,20 +1,15 @@
 <script lang="ts">
   import { createPopover, melt } from "@melt-ui/svelte";
   import { copy } from "svelte-copy";
-  import {
-    client,
-    persistedWallet,
-    selectedNetwork,
-    wallet,
-  } from "$lib/stores";
+  import { persistedWallet, selectedNetwork, wallet } from "$lib/stores";
   import { fade } from "svelte/transition";
-  import { WalletAdapter, type Wallet, createKujiraClient } from "$lib/types";
+  import { WalletAdapter, type Wallet } from "$lib/types";
   import autoAnimate from "@formkit/auto-animate";
-  import { asyncDerived } from "@square/svelte-store";
   import { DENOMS } from "$lib/resources/denoms";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
   import { WALLETS } from "$lib/adapters";
   import { NETWORKS } from "$lib/resources/networks";
+  import { query } from "$lib/utils";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -47,23 +42,18 @@
       "..." +
       $wallet.account.address.slice(-10);
 
-  const balances = asyncDerived(
-    [client, wallet],
-    async ([$client, $wallet]) => {
-      if (!$client || !$wallet || !$wallet.account) return [];
-      const client = await createKujiraClient($client.client);
-      const balances = await client.bank.allBalances($wallet.account.address);
-      return balances
-        .map((coin) => {
-          const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };
-          return {
-            ...meta,
-            amount: parseInt(coin.amount) / Math.pow(10, meta.dec),
-          };
-        })
-        .sort((a, b) => b.amount - a.amount);
-    }
-  );
+  const balancesQuery = query(async (client, wallet) => {
+    const balances = await client.bank.allBalances(wallet.account.address);
+    return balances
+      .map((coin) => {
+        const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };
+        return {
+          ...meta,
+          amount: parseInt(coin.amount) / Math.pow(10, meta.dec),
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+  });
 </script>
 
 <button
@@ -112,7 +102,7 @@
             <Search class="w-4 h-4" />
           </a>
         </div>
-        {#await balances.load()}
+        {#await balancesQuery.load()}
           <p class="text-xs text-center">Loading balances...</p>
         {:then balances}
           {#if balances.length > 0}
