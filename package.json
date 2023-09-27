@@ -10,6 +10,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
+    "@bufbuild/protobuf": "^1.3.1",
     "@melt-ui/pp": "^0.1.2",
     "@melt-ui/svelte": "^0.49.1",
     "@sveltejs/adapter-auto": "^2.0.0",
@@ -18,6 +19,7 @@
     "@sveltejs/kit": "^1.20.4",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.29",
+    "rollup-plugin-visualizer": "^5.9.2",
     "svelte": "^4.0.5",
     "svelte-check": "^3.4.3",
     "svelte-copy": "^1.4.1",
@@ -39,6 +41,7 @@
     "@leapwallet/cosmos-snap-provider": "^0.1.22",
     "@square/svelte-store": "^1.0.17",
     "@terra-money/station-connector": "^1.0.15",
+    "cosmes": "git://github.com/AmitPr/cosmes.git#main",
     "lucide-svelte": "^0.279.0"
   }
 }

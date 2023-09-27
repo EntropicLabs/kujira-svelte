@@ -1,5 +1,5 @@
 import IconKujira from "$lib/icons/IconKujira.svelte";
-import { HttpBatchClient, Tendermint34Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
+// import { HttpBatchClient, Tendermint34Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
 import type { ChainInfo, FeeCurrency } from "@keplr-wallet/types";
 
 export const MAINNET = "kaiyo-1";
@@ -286,39 +286,68 @@ export const CHAIN_INFO: Record<NETWORK, ChainInfo> = {
     ),
 };
 
-export async function createTMClient(chainId: NETWORK, rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<Tendermint34Client> {
-    return Tendermint34Client.create(
-        new HttpBatchClient(rpc, {
-            dispatchInterval,
-            batchSizeLimit,
-        })
-    );
-}
+// export async function createTMClient(chainId: NETWORK, rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<Tendermint34Client> {
+//     return Tendermint34Client.create(
+//         new HttpBatchClient(rpc, {
+//             dispatchInterval,
+//             batchSizeLimit,
+//         })
+//     );
+// }
 
-export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<{ client: Tendermint34Client, rpc: string }> {
+// export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<{ client: Tendermint34Client, rpc: string }> {
+//     const startTime = Date.now();
+//     let latestHeight = 0;
+
+//     const rpcs = NETWORKS[chainId].rpcs;
+//     let clients: { client: Tendermint34Client, rpc: string, latency: number, status: StatusResponse }[] = [];
+//     const promises = rpcs.map(async (rpc) => {
+//         const client = await createTMClient(chainId, rpc);
+//         const status = await client.status();
+//         const latency = Date.now() - startTime;
+//         const height = status.syncInfo.latestBlockHeight;
+//         if (height > latestHeight) {
+//             latestHeight = height;
+//         }
+//         clients.push({ client, rpc, latency, status });
+//     }).map((p) => p.catch((e) => { }));
+
+//     await Promise.race([
+//         Promise.all(promises),
+//         new Promise(resolve => setTimeout(resolve, 1000))
+//     ]);
+
+//     clients = clients.filter((c) => latestHeight - c.status.syncInfo.latestBlockHeight < staleThreshold);
+//     clients.sort((a, b) => a.latency - b.latency);
+
+//     return { client: clients[0].client, rpc: clients[0].rpc };
+// }
+
+import { RpcClient } from "cosmes/client";
+
+export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<{ rpc: string }> {
     const startTime = Date.now();
     let latestHeight = 0;
 
     const rpcs = NETWORKS[chainId].rpcs;
-    let clients: { client: Tendermint34Client, rpc: string, latency: number, status: StatusResponse }[] = [];
+    let clients: { rpc: string, latency: number, status: any }[] = [];
     const promises = rpcs.map(async (rpc) => {
-        const client = await createTMClient(chainId, rpc);
-        const status = await client.status();
+        const status: any = await RpcClient.rawRequest(rpc, "status", {});
         const latency = Date.now() - startTime;
-        const height = status.syncInfo.latestBlockHeight;
+        const height = status.sync_info.latest_block_height;
         if (height > latestHeight) {
             latestHeight = height;
         }
-        clients.push({ client, rpc, latency, status });
-    }).map((p) => p.catch((e) => { }));
+        clients.push({ rpc, latency, status });
+    }).map((p) => p.catch((e) => { console.log(e); }));
 
     await Promise.race([
         Promise.all(promises),
         new Promise(resolve => setTimeout(resolve, 1000))
     ]);
 
-    clients = clients.filter((c) => latestHeight - c.status.syncInfo.latestBlockHeight < staleThreshold);
+    clients = clients.filter((c) => latestHeight - c.status.sync_info.latest_block_height < staleThreshold);
     clients.sort((a, b) => a.latency - b.latency);
 
-    return { client: clients[0].client, rpc: clients[0].rpc };
+    return { rpc: clients[0].rpc };
 }

@@ -8,13 +8,14 @@
     wallet,
   } from "$lib/stores";
   import { fade } from "svelte/transition";
-  import { WalletAdapter, type Wallet, createKujiraClient } from "$lib/types";
+  import { WalletAdapter, type Wallet } from "$lib/types";
   import autoAnimate from "@formkit/auto-animate";
   import { asyncDerived } from "@square/svelte-store";
   import { DENOMS } from "$lib/resources/denoms";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
   import { WALLETS } from "$lib/adapters";
   import { NETWORKS } from "$lib/resources/networks";
+  import { getNativeBalances } from "cosmes/client";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -51,8 +52,11 @@
     [client, wallet],
     async ([$client, $wallet]) => {
       if (!$client || !$wallet || !$wallet.account) return [];
-      const client = await createKujiraClient($client.client);
-      const balances = await client.bank.allBalances($wallet.account.address);
+      // const client = await createKujiraClient($client.client);
+      // const balances = await client.bank.allBalances($wallet.account.address);
+      const balances = await getNativeBalances($client.rpc, {
+        address: $wallet.account.address,
+      });
       return balances
         .map((coin) => {
           const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };

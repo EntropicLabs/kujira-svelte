@@ -1,13 +1,14 @@
-import { QueryClient, type AuthExtension, type BankExtension, type GovExtension, type StakingExtension, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension } from "@cosmjs/stargate";
 import type { Keplr } from "$lib/adapters/keplr";
 import type { Leap } from "$lib/adapters/leap";
 import type { MetaMask } from "$lib/adapters/metamask";
 import type { Sonar } from "$lib/adapters/sonar";
 import type { Station } from "$lib/adapters/station";
 import type { XDefi } from "$lib/adapters/xdefi";
-import type { AuthzExtension } from "@cosmjs/stargate/build/modules/authz/queries";
-import { setupWasmExtension, type WasmExtension } from "@cosmjs/cosmwasm-stargate";
-import type { TendermintClient } from "@cosmjs/tendermint-rpc";
+
+// import { QueryClient, type AuthExtension, type BankExtension, type GovExtension, type StakingExtension, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension } from "@cosmjs/stargate";
+// import type { AuthzExtension } from "@cosmjs/stargate/build/modules/authz/queries";
+// import { setupWasmExtension, type WasmExtension } from "@cosmjs/cosmwasm-stargate";
+// import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 
 export enum WalletAdapter {
     Keplr = 'keplr',
@@ -57,20 +58,20 @@ export interface IWallet {
     // adapter: null | WalletAdapter;
 };
 
-export type KujiraClient = QueryClient &
-    AuthExtension &
-    AuthzExtension &
-    BankExtension &
-    GovExtension &
-    StakingExtension &
-    WasmExtension;
-export async function createKujiraClient(client: TendermintClient): Promise<KujiraClient> {
-    return QueryClient.withExtensions(client,
-        setupAuthExtension,
-        setupAuthzExtension,
-        setupBankExtension,
-        setupGovExtension,
-        setupStakingExtension,
-        setupWasmExtension,
-    );
-}
+// export type KujiraClient = QueryClient &
+//     AuthExtension &
+//     AuthzExtension &
+//     BankExtension &
+//     GovExtension &
+//     StakingExtension &
+//     WasmExtension;
+// export async function createKujiraClient(client: TendermintClient): Promise<KujiraClient> {
+//     return QueryClient.withExtensions(client,
+//         setupAuthExtension,
+//         setupAuthzExtension,
+//         setupBankExtension,
+//         setupGovExtension,
+//         setupStakingExtension,
+//         setupWasmExtension,
+//     );
+// }

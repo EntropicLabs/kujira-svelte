@@ -1,6 +1,6 @@
 import { asyncDerived, asyncWritable, persisted, type Persisted, type WritableLoadable } from "@square/svelte-store";
 import { WalletAdapter, type IWallet } from "$lib/types";
-import { selectBestRPC, type NETWORK, createTMClient } from "$lib/resources/networks";
+import { selectBestRPC, type NETWORK } from "$lib/resources/networks";
 import { adapterToIWallet } from "$lib/adapters";
 
 export type NetworkOptions = {
@@ -44,8 +44,7 @@ export const client = asyncDerived(
             return await selectBestRPC(chainId);
         } else {
             // We want to use the preferred RPC
-            const c = await createTMClient(chainId, preferredRpc);
-            return { client: c, rpc: preferredRpc };
+            return { rpc: preferredRpc };
         }
     }
 );
