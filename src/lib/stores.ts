@@ -1,7 +1,8 @@
-import { asyncDerived, asyncWritable, persisted, type Persisted, type WritableLoadable } from "@square/svelte-store";
+import { asyncDerived, asyncWritable, persisted, type Loadable, type Persisted, type WritableLoadable } from "@square/svelte-store";
 import { WalletAdapter, type IWallet } from "$lib/types";
 import { selectBestRPC, type NETWORK, createTMClient } from "$lib/resources/networks";
 import { adapterToIWallet } from "$lib/adapters";
+import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 
 export type NetworkOptions = {
     [network in NETWORK]: {
@@ -27,14 +28,19 @@ export const wallet: WritableLoadable<IWallet | null> = asyncWritable(
         return wallet as IWallet;
     },
     async (newWallet: IWallet, _, oldWallet: IWallet | undefined) => {
-        console.log("setting wallet: ", newWallet);
         if (oldWallet) oldWallet.disconnect();
         persistedWallet.set(newWallet?.getMetadata().adapter ?? WalletAdapter.Disconnected);
         return newWallet;
-    }
+    },
+    { reloadable: true, trackState: true }
 );
 
-export const client = asyncDerived(
+export declare type Client = {
+    client: TendermintClient;
+    rpc: string;
+    chainId: NETWORK;
+};
+export const client: Loadable<Client> = asyncDerived(
     [selectedNetwork, networkOptions],
     async ([$selectedNetwork, $networkOptions]) => {
         const { chainId } = $selectedNetwork;
@@ -45,7 +51,8 @@ export const client = asyncDerived(
         } else {
             // We want to use the preferred RPC
             const c = await createTMClient(chainId, preferredRpc);
-            return { client: c, rpc: preferredRpc };
+            return { client: c, rpc: preferredRpc, chainId };
         }
-    }
+    },
+    { trackState: true }
 );

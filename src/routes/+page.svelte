@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ExampleTx from "$lib/components/ExampleTx.svelte";
   import NetworkSelect from "$lib/components/NetworkSelect.svelte";
   import WalletWidget from "$lib/components/WalletWidget.svelte";
 </script>
@@ -19,6 +20,10 @@
   <p>A component to allow the user to connect their wallet.</p>
   <div class="w-full flex items-center justify-center m-4">
     <WalletWidget />
+  </div>
+  <p>An example transaction:</p>
+  <div class="w-full flex items-center justify-center m-4">
+    <ExampleTx />
   </div>
   <a
     href="https://github.com/EntropicLabs/kujira-svelte"

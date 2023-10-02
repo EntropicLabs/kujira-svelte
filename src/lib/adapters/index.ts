@@ -1,4 +1,6 @@
+import { selectedNetwork, wallet } from "$lib/stores";
 import { WalletAdapter, type Wallet } from "$lib/types";
+import { get } from "svelte/store";
 import { Keplr } from "./keplr";
 import { Leap } from "./leap";
 import { MetaMask } from "./metamask";
@@ -26,3 +28,23 @@ export function adapterToIWallet(adapter: WalletAdapter): Wallet | null {
 }
 
 export const WALLETS: Wallet[] = [Sonar, Keplr, MetaMask, Leap, Station, XDefi];
+
+let hasSetupEventListeners = false;
+export function setupEventListeners(): void {
+    if (hasSetupEventListeners) return;
+    hasSetupEventListeners = true;
+
+    window.addEventListener("keplr_keystorechange", async () => {
+        const meta = get(wallet)?.getMetadata();
+        if (meta?.adapter === WalletAdapter.Keplr || meta?.adapter === WalletAdapter.XDefi) {
+            wallet.reload!();
+        }
+    });
+
+    window.addEventListener("leap_keystorechange", async () => {
+        const w = get(wallet);
+        if (w && w.getMetadata().adapter === WalletAdapter.Leap) {
+            wallet.reload!();
+        }
+    });
+}

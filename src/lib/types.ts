@@ -1,4 +1,4 @@
-import { QueryClient, type AuthExtension, type BankExtension, type GovExtension, type StakingExtension, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension } from "@cosmjs/stargate";
+import { QueryClient, type AuthExtension, type BankExtension, type GovExtension, type StakingExtension, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension, type TxExtension, setupTxExtension, type DeliverTxResponse, SigningStargateClient, type StdFee, type Account } from "@cosmjs/stargate";
 import type { Keplr } from "$lib/adapters/keplr";
 import type { Leap } from "$lib/adapters/leap";
 import type { MetaMask } from "$lib/adapters/metamask";
@@ -8,6 +8,8 @@ import type { XDefi } from "$lib/adapters/xdefi";
 import type { AuthzExtension } from "@cosmjs/stargate/build/modules/authz/queries";
 import { setupWasmExtension, type WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
+import type { OfflineSigner } from "@cosmjs/proto-signing";
+import type { SimulateResponse } from "cosmjs-types/cosmos/tx/v1beta1/service";
 
 export enum WalletAdapter {
     Keplr = 'keplr',
@@ -35,18 +37,24 @@ export type WalletMetadata = {
     adapter: WalletAdapter,
     name: string,
     logo: any,
+    canSign: boolean,
 };
 
-export type Connectable<T> = { connect(chain: string): Promise<T>; isInstalled(): Promise<boolean>; metadata: WalletMetadata; };
+export type Connectable<T> = {
+    connect(chain: string): Promise<T>;
+    isInstalled(): Promise<boolean>;
+    metadata: WalletMetadata;
+};
 export type Wallet = Connectable<Keplr> | Connectable<Sonar> | Connectable<Leap> | Connectable<MetaMask> | Connectable<Station> | Connectable<XDefi>;
 
 export interface IWallet {
-    disconnect: (this: IWallet) => void;
+    disconnect: () => void;
     account: AccountData | null;
-    getMetadata: (this: IWallet) => WalletMetadata;
-    // isInstalled: () => Promise<boolean>;
-    // metadata: WalletMetadata;
-    // connect: (chain: string) => Promise<IWallet>;
+    signer: OfflineSigner | null;
+    getMetadata: () => WalletMetadata;
+    getSigningClient(client: KujiraClient): Promise<SigningStargateClient>;
+    // sign(client: KujiraClient, msgs: EncodeObject[], memo?: string): Promise<TxRaw>;
+    // signAndBroadcast: (client: KujiraClient, msgs: EncodeObject[], memo?: string) => Promise<DeliverTxResponse>;
     // signAndBroadcast: (
     //     msgs: EncodeObject[],
     //     memo?: string
@@ -63,14 +71,27 @@ export type KujiraClient = QueryClient &
     BankExtension &
     GovExtension &
     StakingExtension &
-    WasmExtension;
+    TxExtension &
+    WasmExtension &
+{ getTmClient: () => TendermintClient };
 export async function createKujiraClient(client: TendermintClient): Promise<KujiraClient> {
-    return QueryClient.withExtensions(client,
+    let qc = QueryClient.withExtensions(client,
         setupAuthExtension,
         setupAuthzExtension,
         setupBankExtension,
         setupGovExtension,
         setupStakingExtension,
+        setupTxExtension,
         setupWasmExtension,
     );
+    Object.defineProperty(qc, 'getTmClient', {
+        value: function () { return this.tmClient; },
+    });
+    return qc as KujiraClient;
+}
+
+export type Simulation = {
+    fee: StdFee;
+    simulation: SimulateResponse;
+    account: Account;
 }

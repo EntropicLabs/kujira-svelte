@@ -1,5 +1,8 @@
 import IconLeap from "$lib/icons/IconLeap.svelte";
-import { ConnectionError, type AccountData, WalletAdapter, type WalletMetadata, type IWallet } from "$lib/types";
+import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
+import { ConnectionError, type AccountData, WalletAdapter, type WalletMetadata, type IWallet, type KujiraClient } from "$lib/types";
+import type { OfflineSigner } from "@cosmjs/proto-signing";
+import { GasPrice, SigningStargateClient, } from "@cosmjs/stargate";
 import type { Window as KeplrWindow, Keplr } from "@keplr-wallet/types";
 
 declare global {
@@ -9,14 +12,15 @@ declare global {
 }
 
 export class Leap implements IWallet {
-    private constructor(public account: AccountData | null) { }
+    private constructor(public account: AccountData, public signer: OfflineSigner, private chain: NETWORK) { }
 
     public static metadata: WalletMetadata = {
         adapter: WalletAdapter.Leap,
         name: 'Leap',
-        logo: IconLeap
+        logo: IconLeap,
+        canSign: true,
     };
-    public getMetadata (this: IWallet): WalletMetadata { return Leap.metadata; }
+    public getMetadata(this: IWallet): WalletMetadata { return Leap.metadata; }
     public static async isInstalled(): Promise<boolean> {
         return !!window.leap;
     }
@@ -35,12 +39,21 @@ export class Leap implements IWallet {
                 throw ConnectionError.NoAccounts;
             }
             const account = accounts[0];
-            return new Leap(account);
+            return new Leap(account, offlineSigner, chain as NETWORK);
         } catch (error) {
             console.log(error);
             throw ConnectionError.GenericError;
         }
     }
 
-    public disconnect(): void { console.log('leap disconnect'); }
+    public disconnect(): void { /* noop */ }
+
+    public async getSigningClient(client: KujiraClient): Promise<SigningStargateClient> {
+        if (!this.account) {
+            throw new Error("No account connected");
+        }
+        const feeDenom = CHAIN_INFO[this.chain].feeCurrencies[0];
+        const gasPrice = GasPrice.fromString(`${feeDenom.gasPriceStep!.low}${feeDenom.coinMinimalDenom}`);
+        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice });
+    }
 }

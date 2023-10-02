@@ -31,15 +31,17 @@
   },
   "type": "module",
   "dependencies": {
+    "@cosmjs/amino": "^0.31.1",
     "@cosmjs/cosmwasm-stargate": "^0.31.1",
     "@cosmjs/proto-signing": "^0.31.1",
     "@cosmjs/stargate": "^0.31.1",
     "@cosmjs/tendermint-rpc": "^0.31.1",
     "@formkit/auto-animate": "^0.8.0",
     "@keplr-wallet/types": "^0.12.25",
-    "@leapwallet/cosmos-snap-provider": "^0.1.22",
+    "@leapwallet/cosmos-snap-provider": "^0.1.23",
     "@square/svelte-store": "^1.0.17",
     "@terra-money/station-connector": "^1.0.15",
+    "cosmjs-types": "^0.8.0",
     "lucide-svelte": "^0.279.0"
   }
 }

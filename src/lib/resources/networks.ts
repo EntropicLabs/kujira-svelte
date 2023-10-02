@@ -1,4 +1,5 @@
 import IconKujira from "$lib/icons/IconKujira.svelte";
+import type { Client } from "$lib/stores";
 import { HttpBatchClient, Tendermint34Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
 import type { ChainInfo, FeeCurrency } from "@keplr-wallet/types";
 
@@ -104,6 +105,11 @@ const chainInfo = (
             coinMinimalDenom: "ukuji",
             coinDecimals: 6,
             coinGeckoId: "kujira",
+            gasPriceStep: {
+                low: 0.00125,
+                average: 0.0025,
+                high: 0.00375,
+            }
         },
         ...fees,
     ],
@@ -295,7 +301,7 @@ export async function createTMClient(chainId: NETWORK, rpc: string, dispatchInte
     );
 }
 
-export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<{ client: Tendermint34Client, rpc: string }> {
+export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<Client> {
     const startTime = Date.now();
     let latestHeight = 0;
 
@@ -312,13 +318,20 @@ export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 1
         clients.push({ client, rpc, latency, status });
     }).map((p) => p.catch((e) => { }));
 
-    await Promise.race([
-        Promise.all(promises),
-        new Promise(resolve => setTimeout(resolve, 1000))
-    ]);
+    let tries = 0;
+    while (clients.length === 0) {
+        await Promise.race([
+            Promise.all(promises),
+            new Promise(resolve => setTimeout(resolve, 1000))
+        ]);
+        tries += 1;
+        if (tries > 5) {
+            break;
+        }
+    }
 
     clients = clients.filter((c) => latestHeight - c.status.syncInfo.latestBlockHeight < staleThreshold);
     clients.sort((a, b) => a.latency - b.latency);
 
-    return { client: clients[0].client, rpc: clients[0].rpc };
+    return { client: clients[0].client, rpc: clients[0].rpc, chainId };
 }

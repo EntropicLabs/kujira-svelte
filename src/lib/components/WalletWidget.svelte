@@ -3,7 +3,7 @@
   import { copy } from "svelte-copy";
   import { persistedWallet, selectedNetwork, wallet } from "$lib/stores";
   import { fade } from "svelte/transition";
-  import { WalletAdapter, type Wallet } from "$lib/types";
+  import { WalletAdapter, type Wallet, type KujiraClient } from "$lib/types";
   import autoAnimate from "@formkit/auto-animate";
   import { DENOMS } from "$lib/resources/denoms";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
@@ -42,18 +42,20 @@
       "..." +
       $wallet.account.address.slice(-10);
 
-  const balancesQuery = query(async (client, wallet) => {
-    const balances = await client.bank.allBalances(wallet.account.address);
-    return balances
-      .map((coin) => {
-        const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };
-        return {
-          ...meta,
-          amount: parseInt(coin.amount) / Math.pow(10, meta.dec),
-        };
-      })
-      .sort((a, b) => b.amount - a.amount);
-  });
+  const { store: balances, state: balancesState } = query(
+    async (client, wallet) => {
+      const balances = await client.bank.allBalances(wallet.account.address);
+      return balances
+        .map((coin) => {
+          const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };
+          return {
+            ...meta,
+            amount: parseInt(coin.amount) / Math.pow(10, meta.dec),
+          };
+        })
+        .sort((a, b) => b.amount - a.amount);
+    }
+  );
 </script>
 
 <button
@@ -102,12 +104,16 @@
             <Search class="w-4 h-4" />
           </a>
         </div>
-        {#await balancesQuery.load()}
+        {#if $balancesState.isPending}
           <p class="text-xs text-center">Loading balances...</p>
-        {:then balances}
-          {#if balances.length > 0}
+        {:else if $balancesState.isError}
+          <p class="text-xs text-center">Failed to load balances</p>
+        {:else if $balancesState.isLoaded}
+          {#if $balances.length === 0}
+            <p class="text-xs text-center">No balances found</p>
+          {:else}
             <div class="grid grid-cols-2 gap-1">
-              {#each balances.slice(0, 5) as coin}
+              {#each $balances.slice(0, 5) as coin}
                 <div class="col-start-1 col-end-1 text-right">
                   <p class="text-xs">{coin.amount.toFixed(2)}</p>
                 </div>
@@ -116,13 +122,13 @@
                 </div>
               {/each}
             </div>
-            {#if balances.slice(5).length > 0}
+            {#if $balances.slice(5).length > 0}
               <p class="text-xs text-center">
-                + {balances.slice(5).length} more
+                + {$balances.slice(5).length} more
               </p>
             {/if}
           {/if}
-        {/await}
+        {/if}
         <button
           class="wallet-option button active"
           title="Disconnect Wallet"
