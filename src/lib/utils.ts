@@ -187,12 +187,12 @@ export class Tx<S extends Stores> {
         this.subscribe = this.state.subscribe;
     }
 
-    public subscribeSimulate(): Loadable<{ simulation: SimulateResponse, fee: StdFee } | null> {
+    public subscribeSimulate(): Loadable<{ ok: true, simulation: SimulateResponse, fee: StdFee } | { ok: false; err: any } | null> {
         return asyncWritable(this.msgs, async () => {
-            const sim = await this.simulate().catch((_) => {
-                return null;
+            const sim = await this.simulate().catch((e) => {
+                return { ok: false as false, err: e };
             });
-            return sim;
+            return { ok: true as true, ...sim };
         });
     }
 
@@ -240,8 +240,13 @@ export class Tx<S extends Stores> {
         let [$c, $w, $tx] = await Promise.all(handles.map(h => h.load())) as [Client, LiveWallet, TxInput];
 
         this.state.set(getTxState("SIGNING"));
-        const signing = await SigningStargateClient.offline($w.signer);
-        return await signing.sign($w.account.address, $tx.msgs, fee, $tx.memo ?? "", { accountNumber, sequence, chainId: $c.chainId });
+        try {
+            const signing = await SigningStargateClient.offline($w.signer);
+            return await signing.sign($w.account.address, $tx.msgs, fee, $tx.memo ?? "", { accountNumber, sequence, chainId: $c.chainId });
+        } catch (e) {
+            this.state.set(getTxState("ERROR"));
+            throw e;
+        }
     }
 
     public async broadcast(raw?: TxRaw): Promise<DeliverTxResponse> {
@@ -249,15 +254,27 @@ export class Tx<S extends Stores> {
         const $c = await client.load();
 
         this.state.set(getTxState("BROADCASTING"));
-        const cwClient = await CosmWasmClient.create($c.client);
-        return cwClient.broadcastTx(bytes).then((res) => {
-            this.state.set(getTxState("COMMITTED"));
-            return res;
-        });
+        try {
+            const cwClient = await CosmWasmClient.create($c.client);
+            return cwClient.broadcastTx(bytes).then((res) => {
+                this.state.set(getTxState("COMMITTED"));
+                return res;
+            });
+        } catch (e) {
+            this.state.set(getTxState("ERROR"));
+            throw e;
+        }
     }
 
-    public async signAndBroadcast(simulation?: Simulation): Promise<DeliverTxResponse> {
-        const raw = await this.sign(simulation);
-        return await this.broadcast(raw);
+    public async signAndBroadcast(simulation?: Simulation): Promise<{ ok: true, res: DeliverTxResponse } | { ok: false, err: any }> {
+        try {
+            const raw = await this.sign(simulation);
+            return {
+                ok: true as true,
+                res: await this.broadcast(raw),
+            };
+        } catch (e) {
+            return { ok: false, err: e };
+        }
     }
 }

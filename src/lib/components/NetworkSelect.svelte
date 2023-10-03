@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ChevronDown } from "lucide-svelte";
+  import { ChevronDown, SatelliteDish, Settings } from "lucide-svelte";
   import { NETWORKS } from "$lib/resources/networks";
-  import { selectedNetwork } from "$lib/stores";
+  import { client, selectedNetwork, type Client } from "$lib/stores";
   import { createPopover, melt } from "@melt-ui/svelte";
   import { fade } from "svelte/transition";
   import { writable } from "svelte/store";
@@ -15,6 +15,13 @@
   let networks = Object.values(NETWORKS).sort((a, b) =>
     a === b ? 0 : a.prod ? -1 : 1
   );
+
+  // get reactivity on client.load()
+  let clientPromise: Promise<Client>;
+  $: {
+    $selectedNetwork;
+    clientPromise = client.load();
+  }
 </script>
 
 {#if networkMeta}
@@ -43,7 +50,6 @@
           aria-label="Change Network"
           on:click={() => {
             $selectedNetwork = { chainId: meta.chainId };
-            $open = false;
           }}
         >
           <div class="flex flex-row space-x-1">
@@ -55,6 +61,26 @@
           <span class="text-gray-400">({meta.chainId})</span>
         </button>
       {/each}
+      <hr class="border-gray-100 mt-2 mb-0.5" />
+      <div
+        class="flex flex-row space-x-1 text-xs overflow-hidden items-center justify-between"
+      >
+        <SatelliteDish class="w-4 h-4 ml-1.5" />
+        <p class="flex-shrink truncate min-w-0">
+          {#await clientPromise}
+            Loading RPC...
+          {:then { rpc }}
+            {new URL(rpc).hostname}
+          {:catch _}
+            Failed to load RPC
+          {/await}
+        </p>
+        <!-- <button
+          class="p-1.5 aspect-square button space-x-1 text-xs overflow-hidden"
+        >
+          <Settings class="w-4 h-4" />
+        </button> -->
+      </div>
     </div>
   </div>
 {/if}
@@ -68,6 +94,6 @@
     @apply border-blue-500;
   }
   .content {
-    @apply z-20 rounded-lg bg-white p-3 pt-2 shadow-sm border border-gray-100;
+    @apply z-20 rounded-lg bg-white p-3 pt-2 shadow-sm border border-gray-100 w-60;
   }
 </style>

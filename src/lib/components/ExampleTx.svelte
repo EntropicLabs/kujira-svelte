@@ -34,8 +34,12 @@
   <input type="text" bind:value={address} class="border" />
 
   <pre>{JSON.stringify($tx, null, 2)}</pre>
-  <pre>{JSON.stringify($simulation?.fee, null, 2)}</pre>
-  {#if $simulation?.fee}
+  {#if $simulation?.ok}
+    <pre>{JSON.stringify($simulation?.fee, null, 2)}</pre>
+  {:else if $simulation?.ok === false}
+    <p class="text-red-500">Error: {$simulation?.err}</p>
+  {/if}
+  {#if $simulation?.ok}
     <button
       class="button"
       on:click={() => {

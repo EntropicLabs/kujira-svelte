@@ -53,12 +53,6 @@ export interface IWallet {
     signer: OfflineSigner | null;
     getMetadata: () => WalletMetadata;
     getSigningClient(client: KujiraClient): Promise<SigningStargateClient>;
-    // sign(client: KujiraClient, msgs: EncodeObject[], memo?: string): Promise<TxRaw>;
-    // signAndBroadcast: (client: KujiraClient, msgs: EncodeObject[], memo?: string) => Promise<DeliverTxResponse>;
-    // signAndBroadcast: (
-    //     msgs: EncodeObject[],
-    //     memo?: string
-    // ) => Promise<DeliverTxResponse>;
     // feeDenom: string;
     // setFeeDenom: (denom: string) => void;
     // chainInfo: ChainInfo;

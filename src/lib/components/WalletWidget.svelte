@@ -72,10 +72,10 @@
       this={$wallet && $wallet.getMetadata().logo}
       class="w-4 h-4"
     />
-    <p class="ml-2">{displayAddr6}</p>
+    <p class="mx-2">{displayAddr6}</p>
   {:else}
     <Wallet2 class="w-4 h-4" />
-    <p class="ml-2">Connect Wallet</p>
+    <p class="mx-2">Connect Wallet</p>
   {/if}
 </button>
 
@@ -92,7 +92,7 @@
             class="text-xs text-bold space-x-1 p-1.5 button flex-grow justify-between"
             use:copy={$wallet?.account?.address ?? ""}
           >
-            <p>{displayAddr10}</p>
+            <p class="flex-grow">{displayAddr10}</p>
             <Copy class="w-4 h-4" />
           </button>
           <a
