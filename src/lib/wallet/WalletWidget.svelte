@@ -1,13 +1,16 @@
 <script lang="ts">
   import { createPopover, melt } from "@melt-ui/svelte";
   import { copy } from "svelte-copy";
-  import { persistedWallet, selectedNetwork, wallet } from "$lib/stores";
   import { fade } from "svelte/transition";
-  import { WalletAdapter, type Wallet } from "$lib/types";
   import autoAnimate from "@formkit/auto-animate";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
   import { WALLETS } from "$lib/wallet/adapters";
   import { MAINNET, NETWORKS } from "$lib/resources/networks";
+  import { WalletAdapter, type Connectable } from "./adapters/types";
+  import { savedAdapter, savedNetwork, signerResolved } from "$lib/stores";
+  import { SonarURI } from "./adapters/sonar";
+  import IconSonar from "./icons/IconSonar.svelte";
+  import QR from "./components/QR.svelte";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -16,9 +19,9 @@
     forceVisible: true,
   });
 
-  let installedWallets: Wallet[] = [];
-  let uninstalledWallets: Wallet[] = [];
-  WALLETS.map(async (wallet: Wallet) => {
+  let installedWallets: Connectable[] = [];
+  let uninstalledWallets: Connectable[] = [];
+  WALLETS.map(async (wallet: Connectable) => {
     if (await wallet.isInstalled()) {
       installedWallets.push(wallet);
     } else {
@@ -27,24 +30,23 @@
   });
 
   $: isConnected =
-    $wallet && $wallet.getMetadata().adapter !== WalletAdapter.Disconnected;
+    $signerResolved?.getMetadata().adapter ?? WalletAdapter.Disconnected !== WalletAdapter.Disconnected;
 
-  $: displayAddr6 =
-    $wallet?.account &&
-    $wallet.account.address.slice(0, 6) +
-      "..." +
-      $wallet.account.address.slice(-6);
-  $: displayAddr10 =
-    $wallet?.account &&
-    $wallet.account.address.slice(0, 10) +
-      "..." +
-      $wallet.account.address.slice(-10);
+  function displayAddr(addr: string | undefined, len: number): string {
+    if (!addr) return "";
+    return addr.slice(0, len) + "..." + addr.slice(-len);
+  }
 </script>
+
+{#if $SonarURI}
+  <QR uri={$SonarURI} rounding={150} backgroundColor="#fff" cutout class="w-96 h-96">
+    <IconSonar class="object-contain w-full h-full" />
+  </QR>
+{/if}
 
 <button
   type="button"
   class="p-1.5 w-fit text-xs button max-h-8"
-  class:connect-cta={!isConnected}
   class:disconnect-cta={isConnected}
   use:melt={$popoverTrigger}
   aria-label={isConnected ? "Disconnect Wallet" : "Connect Wallet"}
@@ -52,10 +54,12 @@
 >
   {#if isConnected}
     <svelte:component
-      this={$wallet && $wallet.getMetadata().logo}
+      this={$signerResolved?.getMetadata().logo}
       class="w-4 h-4"
     />
-    <p class="mx-2 hidden sm:inline">{displayAddr6}</p>
+    <p class="mx-2 hidden sm:inline">
+      {displayAddr($signerResolved?.account().address, 6)}
+    </p>
   {:else}
     <Wallet2 class="w-4 h-4" />
     <p class="mx-2">Connect Wallet</p>
@@ -73,15 +77,17 @@
         <div class="flex flex-row items-center space-x-1 justify-between">
           <button
             class="text-xs text-bold space-x-1 p-1.5 button flex-grow justify-between"
-            use:copy={$wallet?.account?.address ?? ""}
+            use:copy={$signerResolved?.account().address ?? ""}
           >
-            <p class="flex-grow">{displayAddr10}</p>
+            <p class="flex-grow">
+              {displayAddr($signerResolved?.account().address, 10)}
+            </p>
             <Copy class="w-4 h-4" />
           </button>
           <a
             class="p-1.5 button"
-            href="{NETWORKS[$selectedNetwork?.chainId ?? MAINNET]
-              .explorer}/address/{$wallet?.account?.address}"
+            href="{NETWORKS[$savedNetwork.chainId ?? MAINNET]
+              .explorer}/address/{$signerResolved?.account().address}"
             target="_blank"
           >
             <Search class="w-4 h-4" />
@@ -115,10 +121,10 @@
         <button
           class="wallet-option button active"
           title="Disconnect Wallet"
-          on:click={() => wallet.set(null)}
+          on:click={() => savedAdapter.set(WalletAdapter.Disconnected)}
         >
           <svelte:component
-            this={$wallet && $wallet.getMetadata().logo}
+            this={$signerResolved?.getMetadata().logo}
             class="w-6 h-6"
           />
           <p class="ml-1.5 text-sm">Disconnect</p>
@@ -130,11 +136,11 @@
             {#each installedWallets as { metadata: { name, logo, adapter: type }, connect } (type)}
               <button
                 class="wallet-option button"
-                class:active={$persistedWallet === type}
+                class:active={$savedAdapter === type}
                 title="Connect with {name}"
                 on:click={() =>
-                  connect($selectedNetwork?.chainId ?? MAINNET).then((w) =>
-                    wallet.set(w)
+                  connect($savedNetwork.chainId ?? MAINNET).then((w) =>
+                    savedAdapter.set(type)
                   )}
               >
                 <svelte:component this={logo} class="w-6 h-6" />
@@ -148,7 +154,7 @@
           {#each uninstalledWallets as { metadata: { name, logo, adapter: type } } (type)}
             <button
               class="wallet-option button"
-              class:active={$persistedWallet === type}
+              class:active={$savedAdapter === type}
               disabled
               title="{name} not detected"
             >
@@ -163,8 +169,6 @@
 {/if}
 
 <style lang="postcss">
-  .connect-cta {
-  }
   .disconnect-cta {
     @apply border border-gray-200;
   }

@@ -1,36 +1,48 @@
 <script lang="ts">
+  import { refreshing } from "$lib/refreshing";
   import { msg } from "$lib/rpc/msg";
-  import { createQuery } from "$lib/rpc/query";
-  import { client, wallet } from "$lib/stores";
-  import { createKujiraClient } from "$lib/types";
-  import { isConnectedWallet, isLiveWallet } from "$lib/utils";
+  import { client, savedAdapter, savedNetwork, signer } from "$lib/stores";
   import NetworkSelect from "$lib/wallet/NetworkSelect.svelte";
   import WalletWidget from "$lib/wallet/WalletWidget.svelte";
-  import { get } from "svelte/store";
+  import { protoRegistry } from "$lib/wallet/utils";
+  import { accountFromAny } from "@cosmjs/stargate";
 
-  const addr = createQuery(
+  const balances = refreshing(
     async () => {
-      const w = get(wallet);
-      if (!isConnectedWallet(w)) throw new Error("Live Wallet not connected");
-      const c = get(client).client;
-      return await c.bank.allBalances(w.account.address);
+      const s = await $signer;
+      const c = await $client;
+      if (!s) throw new Error("No signer connected");
+      return await c.client.bank.allBalances(s.account().address);
     },
-    { refreshOn: [wallet, client] }
+    { refreshOn: [signer] }
   );
 
-  const txSim = createQuery(
+  const txSim = refreshing(
     async () => {
-      const w = get(wallet);
-      if (!isLiveWallet(w)) throw new Error("Live Wallet not connected");
-      const c = get(client).client;
-      const msgs = msg.bank.msgSend({
-        fromAddress: w.account.address,
-        toAddress: "kujira17xpfvakm2amg962yls6f84z3kell8c5lp3pcxh",
-        amount: [{ denom: "ukuji", amount: "1" }],
-      });
-      return await c.bank.allBalances(w.account.address);
+      const s = await $signer;
+      const c = await $client;
+      if (!s) throw new Error("No signer connected");
+      const msgs = [
+        msg.bank.msgSend({
+          fromAddress: s.account().address,
+          toAddress: "kujira17xpfvakm2amg962yls6f84z3kell8c5lp3pcxh",
+          amount: [{ denom: "ukuji", amount: "1" }],
+        }),
+      ];
+      const anyMsgs = msgs.map((m) => protoRegistry.encodeAsAny(m));
+      const accountQuery = await c.client.auth.account(s.account().address);
+      if (!accountQuery) throw new Error("Account not found");
+
+      const account = accountFromAny(accountQuery);
+      const simulation = await c.client.tx.simulate(
+        anyMsgs,
+        "",
+        s.account().pubkey,
+        account.sequence
+      );
+      return simulation;
     },
-    { refreshOn: [wallet, client] }
+    { refreshOn: [signer] }
   );
 </script>
 
@@ -51,12 +63,20 @@
   <div class="w-full flex items-center justify-center m-4">
     <WalletWidget />
   </div>
-  {#await $addr}
+  {#await $balances}
     <p>Loading...</p>
   {:then coins}
     {#each coins as coin}
       <p>{coin.denom}: {coin.amount}</p>
     {/each}
+  {:catch error}
+    <p>Error: {error.message}</p>
+  {/await}
+
+  {#await $txSim}
+    <p>Loading...</p>
+  {:then sim}
+    {JSON.stringify(sim)}
   {:catch error}
     <p>Error: {error.message}</p>
   {/await}

@@ -1,4 +1,3 @@
-import type { EncodeObject } from "@cosmjs/proto-signing";
 import {
     MsgExec,
     MsgGrant,

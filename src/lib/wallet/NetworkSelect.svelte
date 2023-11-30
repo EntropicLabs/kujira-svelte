@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ChevronDown, SatelliteDish, Settings } from "lucide-svelte";
   import { NETWORKS } from "$lib/resources/networks";
-  import { client, selectedNetwork, type Client } from "$lib/stores";
+  import { client, savedNetwork, type Client } from "$lib/stores";
   import { createPopover, melt } from "@melt-ui/svelte";
   import { fade } from "svelte/transition";
   import { writable } from "svelte/store";
@@ -11,17 +11,10 @@
     elements: { trigger, content },
   } = createPopover({ open });
 
-  $: networkMeta = $selectedNetwork && NETWORKS[$selectedNetwork.chainId];
+  $: networkMeta = $savedNetwork && NETWORKS[$savedNetwork.chainId];
   let networks = Object.values(NETWORKS).sort((a, b) =>
     a === b ? 0 : a.prod ? -1 : 1
   );
-
-  // get reactivity on client.load()
-  let clientPromise: Promise<Client>;
-  $: {
-    $selectedNetwork;
-    clientPromise = client.load();
-  }
 </script>
 
 {#if networkMeta}
@@ -46,10 +39,10 @@
       {#each networks as meta}
         <button
           class="p-1.5 button text-xs text-bold space-x-1 justify-between"
-          class:active={$selectedNetwork.chainId === meta.chainId}
+          class:active={$savedNetwork.chainId === meta.chainId}
           aria-label="Change Network"
           on:click={() => {
-            $selectedNetwork = { chainId: meta.chainId };
+            $savedNetwork = { chainId: meta.chainId };
           }}
         >
           <div class="flex flex-row space-x-1">
@@ -67,7 +60,7 @@
       >
         <SatelliteDish class="w-4 h-4 ml-1.5" />
         <p class="flex-shrink truncate min-w-0">
-          {#await clientPromise}
+          {#await $client}
             Loading RPC...
           {:then { rpc }}
             {new URL(rpc).hostname}

@@ -1,16 +1,17 @@
-import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
+import type { EncodeObject } from "@cosmjs/proto-signing";
 import type { Keplr } from "./keplr";
 import type { Leap } from "./leap";
 import type { MetaMask } from "./metamask";
 import type { Sonar } from "./sonar";
 import type { Station } from "./station";
 import type { XDefi } from "./xdefi";
-import type { KujiraClient } from "$lib/types";
-import type { SigningStargateClient } from "@cosmjs/stargate";
+import type { GasPrice } from "@cosmjs/stargate";
+import type { TendermintClient } from "@cosmjs/tendermint-rpc";
+import type { Pubkey } from "@cosmjs/amino";
 
 export interface AccountData {
     address: string;
-    pubkey: Uint8Array;
+    pubkey: Pubkey;
 }
 
 export enum WalletAdapter {
@@ -37,38 +38,22 @@ export type WalletMetadata = {
     canSign: boolean,
 };
 
-export type Connectable<T> = {
+type ISignerStatic<T> = {
     connect(chain: string): Promise<T>;
     isInstalled(): Promise<boolean>;
     metadata: WalletMetadata;
 };
-export type Wallet = Connectable<Keplr> | Connectable<Sonar> | Connectable<Leap> | Connectable<MetaMask> | Connectable<Station> | Connectable<XDefi>;
-
-export interface IWallet {
-    disconnect: () => void;
-    account: AccountData | null;
-    signer: OfflineSigner | null;
-    getMetadata: () => WalletMetadata;
-    getSigningClient(client: KujiraClient): Promise<SigningStargateClient>;
-    // feeDenom: string;
-    // setFeeDenom: (denom: string) => void;
-    // chainInfo: ChainInfo;
-    // adapter: null | WalletAdapter;
-};
-
-export interface Simulation {
-
-}
+export type Connectable = ISignerStatic<Keplr> | ISignerStatic<Sonar> | ISignerStatic<Leap> | ISignerStatic<MetaMask> | ISignerStatic<Station> | ISignerStatic<XDefi>;
 
 export interface ISigner {
     disconnect: () => void;
     getMetadata: () => WalletMetadata;
+    account(): AccountData;
     sign(
+        client: TendermintClient,
         msgs: EncodeObject[],
         gasLimit: Long,
-        feeDenom: string,
+        gasPrice: GasPrice,
         memo?: string,
     ): Promise<Uint8Array>;
-    account: AccountData;
-
 }

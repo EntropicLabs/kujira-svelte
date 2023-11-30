@@ -1,12 +1,12 @@
 import type StationType from "@terra-money/station-connector";
-import { WalletAdapter, type AccountData, type IWallet, type WalletMetadata, ConnectionError } from "./types";
-import IconStation from "$lib/icons/IconStation.svelte";
-import type { OfflineSigner } from "@cosmjs/proto-signing";
+import { WalletAdapter, type AccountData, type WalletMetadata, ConnectionError, type ISigner } from "./types";
+import IconStation from "../icons/IconStation.svelte";
+import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
-import { GasPrice, SigningStargateClient } from "@cosmjs/stargate";
-import type { KujiraClient } from "$lib/types";
+import type { GasPrice } from "@cosmjs/stargate";
 import type { ChainInfoResponse } from "@terra-money/station-connector/keplrConnector";
-import { aminoTypes, protoRegistry } from "../utils";
+import type { TendermintClient } from "@cosmjs/tendermint-rpc";
+import { convertAccountData, offlineSignerSign } from "./common";
 
 declare global {
     interface Window {
@@ -14,19 +14,9 @@ declare global {
     }
 }
 
-export class Station implements IWallet {
-    private constructor(public account: AccountData, public signer: OfflineSigner, private chain: NETWORK) { }
+export class Station implements ISigner {
+    private constructor(private acc: AccountData, private signer: OfflineSigner) { }
 
-    public static metadata: WalletMetadata = {
-        adapter: WalletAdapter.Station,
-        name: 'Station',
-        logo: IconStation,
-        canSign: true,
-    };
-    public getMetadata(this: IWallet): WalletMetadata { return Station.metadata; }
-    public static async isInstalled(): Promise<boolean> {
-        return !!window.station;
-    }
     public static async connect(chain: string): Promise<Station> {
         if (!await Station.isInstalled()) {
             throw ConnectionError.NotInstalled;
@@ -42,22 +32,33 @@ export class Station implements IWallet {
             if (accounts.length === 0) {
                 throw ConnectionError.NoAccounts;
             }
-            const account = accounts[0];
-            return new Station(account, offlineSigner, chain as NETWORK);
+            return new Station(convertAccountData(accounts[0]), offlineSigner);
         } catch (error) {
             console.error(error);
             throw ConnectionError.GenericError;
         }
     }
+    public disconnect() { /* noop */ }
 
-    public disconnect(): void { /* noop */ }
+    public static metadata: WalletMetadata = {
+        adapter: WalletAdapter.Station,
+        name: 'Station',
+        logo: IconStation,
+        canSign: true,
+    };
+    public getMetadata(): WalletMetadata { return Station.metadata; }
 
-    public async getSigningClient(client: KujiraClient): Promise<SigningStargateClient> {
-        if (!this.account) {
-            throw new Error("No account connected");
-        }
-        const feeDenom = CHAIN_INFO[this.chain].feeCurrencies[0];
-        const gasPrice = GasPrice.fromString(`${feeDenom.gasPriceStep!.low}${feeDenom.coinMinimalDenom}`);
-        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice, registry: protoRegistry, aminoTypes: aminoTypes("kujira") });
+    public static async isInstalled(): Promise<boolean> { return !!window.station; }
+
+    public account(): AccountData { return this.acc; }
+
+    public async sign(
+        client: TendermintClient,
+        msgs: EncodeObject[],
+        gasLimit: Long,
+        gasPrice: GasPrice,
+        memo?: string
+    ): Promise<Uint8Array> {
+        return offlineSignerSign(this.signer, this.acc.address, client, msgs, gasLimit, gasPrice, memo);
     }
 }

@@ -19,7 +19,7 @@ export type NetworkMetadata = {
     rpcs: string[];
 };
 
-export const NETWORKS: Record<NETWORK, NetworkMetadata> = {
+export const NETWORKS: Record<string, NetworkMetadata> = {
     [TESTNET]: {
         name: "Kujira Testnet",
         chainId: TESTNET,
@@ -293,7 +293,7 @@ export const CHAIN_INFO: Record<NETWORK, ChainInfo> = {
     ),
 };
 
-export async function createTMClient(chainId: NETWORK, rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<Tendermint34Client> {
+export async function createTMClient(rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<Tendermint34Client> {
     return Tendermint34Client.create(
         new HttpBatchClient(rpc, {
             dispatchInterval,
@@ -302,14 +302,14 @@ export async function createTMClient(chainId: NETWORK, rpc: string, dispatchInte
     );
 }
 
-export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 10): Promise<Client> {
+export async function selectBestRPC(chainId: string, staleThreshold: number = 10): Promise<Client> {
     const startTime = Date.now();
     let latestHeight = 0;
 
     const rpcs = NETWORKS[chainId].rpcs;
     let clients: { client: Tendermint34Client, rpc: string, latency: number, status: StatusResponse }[] = [];
     const promises = rpcs.map(async (rpc) => {
-        const client = await createTMClient(chainId, rpc);
+        const client = await createTMClient(rpc);
         const status = await client.status();
         const latency = Date.now() - startTime;
         const height = status.syncInfo.latestBlockHeight;
