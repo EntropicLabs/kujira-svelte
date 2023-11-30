@@ -1,7 +1,7 @@
 <script lang="ts">
   import ExampleTx from "$lib/components/ExampleTx.svelte";
-  import NetworkSelect from "$lib/components/NetworkSelect.svelte";
-  import WalletWidget from "$lib/components/WalletWidget.svelte";
+  import NetworkSelect from "$lib/wallet/NetworkSelect.svelte";
+  import WalletWidget from "$lib/wallet/WalletWidget.svelte";
 </script>
 
 <div class="flex flex-col max-w-prose mx-auto text-left text-sm">

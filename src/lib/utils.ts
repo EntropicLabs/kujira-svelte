@@ -13,6 +13,9 @@ import { writable, type Writable, type Stores, type StoresValues } from "svelte/
 export type ConnectedWallet = IWallet & { account: NonNullable<IWallet['account']> };
 export type LiveWallet = ConnectedWallet & { signer: NonNullable<IWallet['signer']> }
 
+export function isConnectedWallet(wallet: IWallet | null | undefined): wallet is ConnectedWallet { return wallet?.account !== null && wallet?.account !== undefined; }
+export function isLiveWallet(wallet: IWallet | null | undefined): wallet is LiveWallet { return isConnectedWallet(wallet) && wallet.signer !== null; }
+
 type QueryFn<T, S> = S extends never[] ?
     (client: KujiraClient) => Promise<T> :
     (client: KujiraClient, vals: S) => Promise<T>;

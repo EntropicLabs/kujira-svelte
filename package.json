@@ -16,6 +16,7 @@
     "@sveltejs/adapter-cloudflare": "^2.3.3",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.20.4",
+    "@walletconnect/types": "^2.10.5",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.29",
     "rollup-plugin-visualizer": "^5.9.2",
@@ -41,6 +42,7 @@
     "@leapwallet/cosmos-snap-provider": "^0.1.23",
     "@square/svelte-store": "^1.0.17",
     "@terra-money/station-connector": "^1.0.15",
+    "@walletconnect/sign-client": "^2.10.5",
     "cosmjs-types": "^0.8.0",
     "lucide-svelte": "^0.279.0"
   }

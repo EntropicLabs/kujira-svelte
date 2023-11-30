@@ -1,5 +1,6 @@
 import IconKujira from "$lib/icons/IconKujira.svelte";
 import type { Client } from "$lib/stores";
+import { createKujiraClient } from "$lib/types";
 import { HttpBatchClient, Tendermint34Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
 import type { ChainInfo, FeeCurrency } from "@keplr-wallet/types";
 
@@ -333,5 +334,5 @@ export async function selectBestRPC(chainId: NETWORK, staleThreshold: number = 1
     clients = clients.filter((c) => latestHeight - c.status.syncInfo.latestBlockHeight < staleThreshold);
     clients.sort((a, b) => a.latency - b.latency);
 
-    return { client: clients[0].client, rpc: clients[0].rpc, chainId };
+    return { client: await createKujiraClient(clients[0].client), rpc: clients[0].rpc, chainId };
 }

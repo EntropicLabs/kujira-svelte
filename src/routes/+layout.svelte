@@ -1,5 +1,5 @@
 <script>
-  import { setupEventListeners } from "$lib/adapters";
+  import { setupEventListeners } from "$lib/wallet/adapters";
   import "../app.css";
 
   setupEventListeners();

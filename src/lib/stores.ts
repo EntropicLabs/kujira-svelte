@@ -1,7 +1,7 @@
 import { asyncDerived, asyncWritable, persisted, type Loadable, type Persisted, type WritableLoadable } from "@square/svelte-store";
-import { WalletAdapter, type IWallet } from "$lib/types";
+import { WalletAdapter, type IWallet, createKujiraClient, type KujiraClient } from "$lib/types";
 import { selectBestRPC, type NETWORK, createTMClient } from "$lib/resources/networks";
-import { adapterToIWallet } from "$lib/adapters";
+import { adapterToIWallet } from "$lib/wallet/adapters";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 
 export type NetworkOptions = {
@@ -36,7 +36,7 @@ export const wallet: WritableLoadable<IWallet | null> = asyncWritable(
 );
 
 export declare type Client = {
-    client: TendermintClient;
+    client: KujiraClient;
     rpc: string;
     chainId: NETWORK;
 };
@@ -45,14 +45,16 @@ export const client: Loadable<Client> = asyncDerived(
     async ([$selectedNetwork, $networkOptions]) => {
         const { chainId } = $selectedNetwork;
         const { preferredRpc } = $networkOptions[chainId] ?? {};
+        let c;
         if (!preferredRpc) {
             // We want to autoselect the best RPC
-            return await selectBestRPC(chainId);
+            c = await selectBestRPC(chainId);
         } else {
             // We want to use the preferred RPC
-            const c = await createTMClient(chainId, preferredRpc);
-            return { client: c, rpc: preferredRpc, chainId };
+            const kc = await createKujiraClient(await createTMClient(chainId, preferredRpc));
+            c = { client: kc, rpc: preferredRpc, chainId };
         }
+        return c
     },
     { trackState: true }
 );

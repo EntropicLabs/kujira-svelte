@@ -1,9 +1,11 @@
 import { CosmjsOfflineSigner, connectSnap, getSnap, suggestChain } from "@leapwallet/cosmos-snap-provider";
-import { ConnectionError, type AccountData, WalletAdapter, type WalletMetadata, type IWallet, type KujiraClient } from "$lib/types";
 import IconMetaMask from "$lib/icons/IconMetaMask.svelte";
 import { GasPrice, SigningStargateClient } from "@cosmjs/stargate";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
 import type { OfflineSigner } from "@cosmjs/proto-signing";
+import { aminoTypes, protoRegistry } from "../utils";
+import { WalletAdapter, type AccountData, type IWallet, type WalletMetadata, ConnectionError } from "./types";
+import type { KujiraClient } from "$lib/types";
 
 export class MetaMask implements IWallet {
     private constructor(public account: AccountData, public signer: OfflineSigner, private chain: NETWORK) { }
@@ -34,11 +36,11 @@ export class MetaMask implements IWallet {
                 const account = accounts[0];
                 return new MetaMask(account, offlineSigner, chain as NETWORK);
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 throw ConnectionError.GenericError;
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw ConnectionError.GenericError;
         }
     }
@@ -51,6 +53,6 @@ export class MetaMask implements IWallet {
         }
         const feeDenom = CHAIN_INFO[this.chain].feeCurrencies[0];
         const gasPrice = GasPrice.fromString(`${feeDenom.gasPriceStep!.low}${feeDenom.coinMinimalDenom}`);
-        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice });
+        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice, registry: protoRegistry, aminoTypes: aminoTypes("kujira") });
     }
 }

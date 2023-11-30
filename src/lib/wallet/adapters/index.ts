@@ -1,4 +1,4 @@
-import { selectedNetwork, wallet } from "$lib/stores";
+import { wallet } from "$lib/stores";
 import { WalletAdapter, type Wallet } from "$lib/types";
 import { get } from "svelte/store";
 import { Keplr } from "./keplr";
@@ -27,7 +27,7 @@ export function adapterToIWallet(adapter: WalletAdapter): Wallet | null {
     }
 }
 
-export const WALLETS: Wallet[] = [Sonar, Keplr, MetaMask, Leap, Station, XDefi];
+export const WALLETS: Wallet[] = [/*Sonar, MetaMask,*/ Keplr, Leap, Station, XDefi];
 
 let hasSetupEventListeners = false;
 export function setupEventListeners(): void {

@@ -1,9 +1,12 @@
 import type StationType from "@terra-money/station-connector";
-import { WalletAdapter, type AccountData, ConnectionError, type WalletMetadata, type IWallet, type KujiraClient } from "$lib/types";
+import { WalletAdapter, type AccountData, type IWallet, type WalletMetadata, ConnectionError } from "./types";
 import IconStation from "$lib/icons/IconStation.svelte";
 import type { OfflineSigner } from "@cosmjs/proto-signing";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
 import { GasPrice, SigningStargateClient } from "@cosmjs/stargate";
+import type { KujiraClient } from "$lib/types";
+import type { ChainInfoResponse } from "@terra-money/station-connector/keplrConnector";
+import { aminoTypes, protoRegistry } from "../utils";
 
 declare global {
     interface Window {
@@ -32,8 +35,9 @@ export class Station implements IWallet {
         const station = window.station!.keplr;
 
         try {
+            await station.experimentalSuggestChain(CHAIN_INFO[chain as NETWORK] as ChainInfoResponse);
             await station.enable(chain);
-            const offlineSigner = station.getOfflineSigner(chain);
+            const offlineSigner = await station.getOfflineSignerAuto(chain);
             const accounts = await offlineSigner.getAccounts();
             if (accounts.length === 0) {
                 throw ConnectionError.NoAccounts;
@@ -41,7 +45,7 @@ export class Station implements IWallet {
             const account = accounts[0];
             return new Station(account, offlineSigner, chain as NETWORK);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw ConnectionError.GenericError;
         }
     }
@@ -54,6 +58,6 @@ export class Station implements IWallet {
         }
         const feeDenom = CHAIN_INFO[this.chain].feeCurrencies[0];
         const gasPrice = GasPrice.fromString(`${feeDenom.gasPriceStep!.low}${feeDenom.coinMinimalDenom}`);
-        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice });
+        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice, registry: protoRegistry, aminoTypes: aminoTypes("kujira") });
     }
 }

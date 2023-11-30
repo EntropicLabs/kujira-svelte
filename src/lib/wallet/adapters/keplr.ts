@@ -1,9 +1,11 @@
 import IconKeplr from "$lib/icons/IconKeplr.svelte";
+import { aminoTypes, protoRegistry } from "../utils";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
-import { ConnectionError, type AccountData, WalletAdapter, type WalletMetadata, type IWallet, type KujiraClient } from "$lib/types";
 import type { OfflineSigner } from "@cosmjs/proto-signing";
 import { GasPrice, SigningStargateClient } from "@cosmjs/stargate";
 import type { Window as KeplrWindow } from "@keplr-wallet/types";
+import { WalletAdapter, type AccountData, type IWallet, type WalletMetadata, ConnectionError } from "./types";
+import type { KujiraClient } from "$lib/types";
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -31,8 +33,9 @@ export class Keplr implements IWallet {
         const keplr = window.keplr!;
 
         try {
+            await keplr.experimentalSuggestChain(CHAIN_INFO[chain as NETWORK]);
             await keplr.enable(chain);
-            const offlineSigner = keplr.getOfflineSigner(chain);
+            const offlineSigner = await keplr.getOfflineSignerAuto(chain);
             const accounts = await offlineSigner.getAccounts();
             if (accounts.length === 0) {
                 throw ConnectionError.NoAccounts;
@@ -40,7 +43,7 @@ export class Keplr implements IWallet {
             const account = accounts[0];
             return new Keplr(account, offlineSigner, chain as NETWORK);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw ConnectionError.GenericError;
         }
     }
@@ -53,6 +56,6 @@ export class Keplr implements IWallet {
         }
         const feeDenom = CHAIN_INFO[this.chain].feeCurrencies[0];
         const gasPrice = GasPrice.fromString(`${feeDenom.gasPriceStep!.low}${feeDenom.coinMinimalDenom}`);
-        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice });
+        return SigningStargateClient.createWithSigner(client.getTmClient(), this.signer, { gasPrice, registry: protoRegistry, aminoTypes: aminoTypes("kujira") });
     }
 }

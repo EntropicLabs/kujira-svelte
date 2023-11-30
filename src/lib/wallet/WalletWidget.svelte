@@ -3,13 +3,11 @@
   import { copy } from "svelte-copy";
   import { persistedWallet, selectedNetwork, wallet } from "$lib/stores";
   import { fade } from "svelte/transition";
-  import { WalletAdapter, type Wallet, type KujiraClient } from "$lib/types";
+  import { WalletAdapter, type Wallet } from "$lib/types";
   import autoAnimate from "@formkit/auto-animate";
-  import { DENOMS } from "$lib/resources/denoms";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
-  import { WALLETS } from "$lib/adapters";
-  import { NETWORKS } from "$lib/resources/networks";
-  import { query } from "$lib/utils";
+  import { WALLETS } from "$lib/wallet/adapters";
+  import { MAINNET, NETWORKS } from "$lib/resources/networks";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -41,26 +39,11 @@
     $wallet.account.address.slice(0, 10) +
       "..." +
       $wallet.account.address.slice(-10);
-
-  const { store: balances, state: balancesState } = query(
-    async (client, wallet) => {
-      const balances = await client.bank.allBalances(wallet.account.address);
-      return balances
-        .map((coin) => {
-          const meta = DENOMS[coin.denom] ?? { name: coin.denom, dec: 0 };
-          return {
-            ...meta,
-            amount: parseInt(coin.amount) / Math.pow(10, meta.dec),
-          };
-        })
-        .sort((a, b) => b.amount - a.amount);
-    }
-  );
 </script>
 
 <button
   type="button"
-  class="p-1.5 w-fit text-xs button"
+  class="p-1.5 w-fit text-xs button max-h-8"
   class:connect-cta={!isConnected}
   class:disconnect-cta={isConnected}
   use:melt={$popoverTrigger}
@@ -72,7 +55,7 @@
       this={$wallet && $wallet.getMetadata().logo}
       class="w-4 h-4"
     />
-    <p class="mx-2">{displayAddr6}</p>
+    <p class="mx-2 hidden sm:inline">{displayAddr6}</p>
   {:else}
     <Wallet2 class="w-4 h-4" />
     <p class="mx-2">Connect Wallet</p>
@@ -97,38 +80,38 @@
           </button>
           <a
             class="p-1.5 button"
-            href="{NETWORKS[$selectedNetwork.chainId].explorer}/address/{$wallet
-              ?.account?.address}"
+            href="{NETWORKS[$selectedNetwork?.chainId ?? MAINNET]
+              .explorer}/address/{$wallet?.account?.address}"
             target="_blank"
           >
             <Search class="w-4 h-4" />
           </a>
         </div>
-        {#if $balancesState.isPending}
+        <!-- {#if $balances.isPending}
           <p class="text-xs text-center">Loading balances...</p>
-        {:else if $balancesState.isError}
+        {:else if $balances.isFailure}
           <p class="text-xs text-center">Failed to load balances</p>
-        {:else if $balancesState.isLoaded}
-          {#if $balances.length === 0}
+        {:else if $balances.isSuccess}
+          {#if $balances.value.arr.length === 0}
             <p class="text-xs text-center">No balances found</p>
           {:else}
             <div class="grid grid-cols-2 gap-1">
-              {#each $balances.slice(0, 5) as coin}
+              {#each $balances.value.arr.slice(0, 5) as bal}
                 <div class="col-start-1 col-end-1 text-right">
-                  <p class="text-xs">{coin.amount.toFixed(2)}</p>
+                  <p class="text-xs">{bal.humanAmount()}</p>
                 </div>
                 <div class="col-start-2 col-end-2">
-                  <p class="text-xs">{coin.name}</p>
+                  <p class="text-xs">{bal.name}</p>
                 </div>
               {/each}
             </div>
-            {#if $balances.slice(5).length > 0}
+            {#if $balances.value.arr.slice(5).length > 0}
               <p class="text-xs text-center">
-                + {$balances.slice(5).length} more
+                + {$balances.value.arr.slice(5).length} more
               </p>
             {/if}
           {/if}
-        {/if}
+        {/if} -->
         <button
           class="wallet-option button active"
           title="Disconnect Wallet"
@@ -150,7 +133,9 @@
                 class:active={$persistedWallet === type}
                 title="Connect with {name}"
                 on:click={() =>
-                  connect($selectedNetwork.chainId).then((w) => wallet.set(w))}
+                  connect($selectedNetwork?.chainId ?? MAINNET).then((w) =>
+                    wallet.set(w)
+                  )}
               >
                 <svelte:component this={logo} class="w-6 h-6" />
                 <p class="ml-1.5 text-sm">{name}</p>
@@ -184,7 +169,7 @@
     @apply border border-gray-200;
   }
   .content {
-    @apply z-10 w-60 rounded-lg bg-white p-3 pt-2 shadow-sm border border-gray-100;
+    @apply z-10 w-60 rounded-lg bg-white p-3 pt-2 shadow-sm border border-gray-200;
   }
   .button {
     @apply rounded-lg border border-gray-200 flex flex-row items-center transition-colors;
@@ -197,6 +182,6 @@
     @apply border-blue-500;
   }
   .wallet-option:disabled {
-    @apply opacity-50 bg-gray-100;
+    @apply opacity-50 bg-zinc-700;
   }
 </style>

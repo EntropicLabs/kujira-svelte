@@ -26,7 +26,7 @@
 
 {#if networkMeta}
   <button
-    class="p-1.5 button text-xs text-bold space-x-1 button overflow-auto w-fit"
+    class="p-1.5 button text-xs text-bold space-x-1 overflow-auto w-fit"
     use:melt={$trigger}
     aria-haspopup="true"
     aria-label="Change Network"
@@ -45,7 +45,7 @@
     <div class="flex flex-col items-stretch gap-1">
       {#each networks as meta}
         <button
-          class="p-1.5 button text-xs text-bold space-x-1 button justify-between"
+          class="p-1.5 button text-xs text-bold space-x-1 justify-between"
           class:active={$selectedNetwork.chainId === meta.chainId}
           aria-label="Change Network"
           on:click={() => {
