@@ -6,11 +6,19 @@
   import { Copy, Search, Wallet2 } from "lucide-svelte";
   import { WALLETS } from "$lib/wallet/adapters";
   import { MAINNET, NETWORKS } from "$lib/resources/networks";
-  import { WalletAdapter, type Connectable } from "./adapters/types";
-  import { savedAdapter, savedNetwork, signerResolved } from "$lib/stores";
-  import { SonarURI } from "./adapters/sonar";
-  import IconSonar from "./icons/IconSonar.svelte";
-  import QR from "./components/QR.svelte";
+  import { WalletAdapter, type Connectable } from "../adapters/types";
+  import {
+    client,
+    savedAdapter,
+    savedNetwork,
+    signer,
+    signerResolved,
+  } from "$lib/stores";
+  import { SonarURI } from "../adapters/sonar";
+  import IconSonar from "../icons/IconSonar.svelte";
+  import QR from "./QR.svelte";
+  import { refreshing } from "$lib/refreshing";
+  import { Balance } from "../coin";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -30,16 +38,34 @@
   });
 
   $: isConnected =
-    $signerResolved?.getMetadata().adapter ?? WalletAdapter.Disconnected !== WalletAdapter.Disconnected;
+    $signerResolved?.getMetadata().adapter ??
+    WalletAdapter.Disconnected !== WalletAdapter.Disconnected;
 
   function displayAddr(addr: string | undefined, len: number): string {
     if (!addr) return "";
     return addr.slice(0, len) + "..." + addr.slice(-len);
   }
+
+  const balances = refreshing(
+    async () => {
+      const s = await $signer;
+      const c = await $client;
+      if (!s) throw new Error("No signer connected");
+      let coins = await c.client.bank.allBalances(s.account().address);
+      return coins.map((c) => Balance.from(c));
+    },
+    { refreshOn: [signer] }
+  );
 </script>
 
 {#if $SonarURI}
-  <QR uri={$SonarURI} rounding={150} backgroundColor="#fff" cutout class="w-96 h-96">
+  <QR
+    uri={$SonarURI}
+    rounding={150}
+    backgroundColor="#fff"
+    cutout
+    class="w-96 h-96"
+  >
     <IconSonar class="object-contain w-full h-full" />
   </QR>
 {/if}
@@ -93,16 +119,14 @@
             <Search class="w-4 h-4" />
           </a>
         </div>
-        <!-- {#if $balances.isPending}
+        {#await $balances}
           <p class="text-xs text-center">Loading balances...</p>
-        {:else if $balances.isFailure}
-          <p class="text-xs text-center">Failed to load balances</p>
-        {:else if $balances.isSuccess}
-          {#if $balances.value.arr.length === 0}
+        {:then coins}
+          {#if coins.length === 0}
             <p class="text-xs text-center">No balances found</p>
           {:else}
             <div class="grid grid-cols-2 gap-1">
-              {#each $balances.value.arr.slice(0, 5) as bal}
+              {#each coins.slice(0, 5) as bal}
                 <div class="col-start-1 col-end-1 text-right">
                   <p class="text-xs">{bal.humanAmount()}</p>
                 </div>
@@ -111,13 +135,15 @@
                 </div>
               {/each}
             </div>
-            {#if $balances.value.arr.slice(5).length > 0}
+            {#if coins.slice(5).length > 0}
               <p class="text-xs text-center">
-                + {$balances.value.arr.slice(5).length} more
+                + {coins.slice(5).length} more
               </p>
             {/if}
           {/if}
-        {/if} -->
+        {:catch _}
+          <p class="text-xs text-center">Failed to load balances</p>
+        {/await}
         <button
           class="wallet-option button active"
           title="Disconnect Wallet"

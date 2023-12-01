@@ -1,10 +1,9 @@
-import { asyncDerived, asyncWritable, type Loadable, type Persisted, type WritableLoadable } from "@square/svelte-store";
 import { createKujiraClient, type KujiraClient } from "$lib/types";
-import { selectBestRPC, type NETWORK, createTMClient } from "$lib/resources/networks";
+import { selectBestRPC, createTMClient } from "$lib/resources/networks";
 import { adapterToIWallet } from "$lib/wallet/adapters";
 import { WalletAdapter, type ISigner } from "./wallet/adapters/types";
 import { persisted } from "svelte-persisted-store";
-import { get, type Readable } from "svelte/store";
+import { get } from "svelte/store";
 import { refreshing } from "./refreshing";
 
 export type NetworkOptions = {

@@ -55,7 +55,7 @@ export class Station implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: Long,
+        gasLimit: number,
         gasPrice: GasPrice,
         memo?: string
     ): Promise<Uint8Array> {

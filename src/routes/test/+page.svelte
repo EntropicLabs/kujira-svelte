@@ -2,10 +2,11 @@
   import { refreshing } from "$lib/refreshing";
   import { msg } from "$lib/rpc/msg";
   import { client, savedAdapter, savedNetwork, signer } from "$lib/stores";
-  import NetworkSelect from "$lib/wallet/NetworkSelect.svelte";
-  import WalletWidget from "$lib/wallet/WalletWidget.svelte";
+  import NetworkSelect from "$lib/wallet/components/NetworkSelect.svelte";
+  import WalletWidget from "$lib/wallet/components/WalletWidget.svelte";
   import { protoRegistry } from "$lib/wallet/utils";
-  import { accountFromAny } from "@cosmjs/stargate";
+  import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+  import { GasPrice, accountFromAny } from "@cosmjs/stargate";
 
   const balances = refreshing(
     async () => {
@@ -44,6 +45,32 @@
     },
     { refreshOn: [signer] }
   );
+
+  async function submitTx() {
+    const s = await $signer;
+    const c = await $client;
+    if (!s) throw new Error("No signer connected");
+    const sim = await $txSim;
+    const msgs = [
+      msg.bank.msgSend({
+        fromAddress: s.account().address,
+        toAddress: "kujira17xpfvakm2amg962yls6f84z3kell8c5lp3pcxh",
+        amount: [{ denom: "ukuji", amount: "1" }],
+      }),
+    ];
+    const gasEstimate = parseInt(sim.gasInfo!.gasUsed.toString());
+    const gas = Math.round(gasEstimate * 1.4);
+    const bytes = await s.sign(
+      c.client.getTmClient(),
+      msgs,
+      gas,
+      GasPrice.fromString("0.00125ukuji")
+    );
+    const cwClient = await CosmWasmClient.create(c.client.getTmClient());
+    const result = await cwClient.broadcastTx(bytes);
+    console.log(result);
+    return result;
+  }
 </script>
 
 <div class="flex flex-col max-w-prose mx-auto text-left text-sm">
@@ -76,7 +103,7 @@
   {#await $txSim}
     <p>Loading...</p>
   {:then sim}
-    {JSON.stringify(sim)}
+    <button class="button" on:click={submitTx}>Execute</button>
   {:catch error}
     <p>Error: {error.message}</p>
   {/await}

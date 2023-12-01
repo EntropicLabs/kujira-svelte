@@ -38,6 +38,7 @@ export class Sonar implements ISigner {
 
     public static async connect(chain: string): Promise<Sonar> {
         const rpc = (await get(client)).client;
+        console.log("sonar init");
         const signClient = await SignClient.init({
             projectId: "fbda64846118d1a3487a4bfe3a6b00ac",
         });
@@ -96,7 +97,7 @@ export class Sonar implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: Long,
+        gasLimit: number,
         gasPrice: GasPrice,
         memo?: string
     ): Promise<Uint8Array> {

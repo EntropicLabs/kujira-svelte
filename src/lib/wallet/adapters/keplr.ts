@@ -4,7 +4,6 @@ import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import type { GasPrice } from "@cosmjs/stargate";
 import type { Window as KeplrWindow } from "@keplr-wallet/types";
 import { WalletAdapter, type AccountData, type WalletMetadata, ConnectionError, type ISigner } from "./types";
-import type { Long } from "long";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import { convertAccountData, offlineSignerSign } from "./common";
 
@@ -54,7 +53,7 @@ export class Keplr implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: Long,
+        gasLimit: number,
         gasPrice: GasPrice,
         memo?: string
     ): Promise<Uint8Array> {

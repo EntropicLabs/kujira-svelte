@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { ChevronDown, SatelliteDish, Settings } from "lucide-svelte";
+  import { ChevronDown } from "lucide-svelte";
   import { NETWORKS } from "$lib/resources/networks";
-  import { client, savedNetwork, type Client } from "$lib/stores";
+  import { client, savedNetwork } from "$lib/stores";
   import { createPopover, melt } from "@melt-ui/svelte";
   import { fade } from "svelte/transition";
   import { writable } from "svelte/store";
+  import RpcSelect from "./RpcSelect.svelte";
 
   const open = writable(false);
   const {
@@ -55,25 +56,12 @@
         </button>
       {/each}
       <hr class="border-gray-100 mt-2 mb-0.5" />
-      <div
-        class="flex flex-row space-x-1 text-xs overflow-hidden items-center justify-between"
-      >
-        <SatelliteDish class="w-4 h-4 ml-1.5" />
-        <p class="flex-shrink truncate min-w-0">
-          {#await $client}
-            Loading RPC...
-          {:then { rpc }}
-            {new URL(rpc).hostname}
-          {:catch _}
-            Failed to load RPC
-          {/await}
+      <RpcSelect />
+      {#await $client catch e}
+        <p class="text-red-400 text-xs">
+          {e.message}
         </p>
-        <!-- <button
-          class="p-1.5 aspect-square button space-x-1 text-xs overflow-hidden"
-        >
-          <Settings class="w-4 h-4" />
-        </button> -->
-      </div>
+      {/await}
     </div>
   </div>
 {/if}

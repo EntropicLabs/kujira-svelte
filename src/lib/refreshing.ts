@@ -1,4 +1,4 @@
-import { writable, type Readable, type Writable, get } from "svelte/store";
+import { writable, type Readable, type Writable, get, readonly } from "svelte/store";
 
 interface CreateRefreshingOptions {
     // Subscribe to these stores, trigger a reload when they change.
@@ -14,23 +14,20 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
     let resolvedStore: Writable<T | undefined> = writable(undefined);
     let currentPromise: Promise<T> | undefined = undefined;
     const fnPromise = async () => {
-        let promise = (async () => {
+        const promise = currentPromise = (async () => {
             if (fn.length === 0) return await fn();
             else return await fn(get(resolvedStore));
         })();
-        currentPromise = promise;
 
-        let errored = false;
-        let error = undefined;
         let result = await (promise.catch((e) => {
-            errored = true;
-            error = e;
+            if (currentPromise === promise) {
+                resolvedStore.set(undefined);
+                throw e;
+            }
             return undefined;
         }));
         // Only set the resolved store if this is the most recent promise.
         if (currentPromise === promise) resolvedStore.set(result);
-        // If we errored, we want to now throw the error.
-        if (errored) throw error;
         return result as T;
     }
 
@@ -67,6 +64,6 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
     return {
         subscribe: store.subscribe,
         reload,
-        resolved: resolvedStore,
+        resolved: readonly(resolvedStore),
     };
 }

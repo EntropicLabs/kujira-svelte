@@ -41,7 +41,6 @@
     "@formkit/auto-animate": "^0.8.0",
     "@keplr-wallet/types": "^0.12.25",
     "@leapwallet/cosmos-snap-provider": "^0.1.23",
-    "@square/svelte-store": "^1.0.17",
     "@terra-money/station-connector": "^1.0.15",
     "@walletconnect/sign-client": "^2.10.5",
     "cosmjs-types": "^0.8.0",

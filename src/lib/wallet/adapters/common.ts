@@ -13,11 +13,11 @@ export async function offlineSignerSign(
     address: string,
     client: TendermintClient,
     msgs: EncodeObject[],
-    gasLimit: Long,
+    gasLimit: number,
     gasPrice: GasPrice,
     memo?: string
 ): Promise<Uint8Array> {
-    const amount = gasPrice.amount.multiply(Uint64.fromString(gasLimit.toString())).ceil().toString();
+    const amount = gasPrice.amount.multiply(Uint64.fromNumber(gasLimit)).ceil().toString();
     const fee = {
         amount: coins(amount, gasPrice.denom),
         gas: gasLimit.toString(),
