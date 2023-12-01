@@ -1,6 +1,5 @@
 <script lang="ts">
-  import ExampleTx from "$lib/components/ExampleTx.svelte";
-  import NetworkSelect from "$lib/wallet/components/NetworkSelect.svelte";
+  import NetworkSelect from "$lib/network/components/NetworkSelect.svelte";
   import WalletWidget from "$lib/wallet/components/WalletWidget.svelte";
 </script>
 
@@ -22,9 +21,6 @@
     <WalletWidget />
   </div>
   <p>An example transaction:</p>
-  <div class="w-full flex items-center justify-center m-4">
-    <ExampleTx />
-  </div>
   <a
     href="https://github.com/EntropicLabs/kujira-svelte"
     class="font-medium text-blue-600 dark:text-blue-500 hover:underline"

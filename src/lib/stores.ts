@@ -1,10 +1,11 @@
-import { createKujiraClient, type KujiraClient } from "$lib/types";
-import { selectBestRPC, createTMClient } from "$lib/resources/networks";
+import { createKujiraClient } from "$lib/types";
+import { selectBestRPC, createTMClient } from "$lib/network/connect";
 import { adapterToIWallet } from "$lib/wallet/adapters";
 import { WalletAdapter, type ISigner } from "./wallet/adapters/types";
 import { persisted } from "svelte-persisted-store";
 import { get } from "svelte/store";
 import { refreshing } from "./refreshing";
+import type { Client } from "./network/types";
 
 export type NetworkOptions = {
     [network: string]: {
@@ -32,11 +33,6 @@ export const signer = refreshing<ISigner | null>(async (old) => {
 }, { refreshOn: [savedAdapter, savedNetwork] });
 export const signerResolved = signer.resolved;
 
-export declare type Client = {
-    client: KujiraClient;
-    rpc: string;
-    chainId: string;
-};
 export const client = refreshing<Client>(async () => {
     const { chainId } = get(savedNetwork);
     const { preferredRpc } = get(savedNetworkOptions)[chainId] ?? {};

@@ -2,7 +2,7 @@
   import { refreshing } from "$lib/refreshing";
   import { msg } from "$lib/rpc/msg";
   import { client, savedAdapter, savedNetwork, signer } from "$lib/stores";
-  import NetworkSelect from "$lib/wallet/components/NetworkSelect.svelte";
+  import NetworkSelect from "$lib/network/components/NetworkSelect.svelte";
   import WalletWidget from "$lib/wallet/components/WalletWidget.svelte";
   import { protoRegistry } from "$lib/wallet/utils";
   import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
