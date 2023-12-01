@@ -1,10 +1,10 @@
 <script lang="ts">
   import { NETWORKS } from "$lib/resources/networks";
-  import { client, savedNetwork, savedNetworkOptions } from "$lib/stores";
   import { createPopover, melt } from "@melt-ui/svelte";
   import { LockIcon, SatelliteDish } from "lucide-svelte";
   import { writable } from "svelte/store";
   import { fade } from "svelte/transition";
+  import { client, savedNetwork, savedNetworkOptions } from "../stores";
 
   const open = writable(false);
   const {

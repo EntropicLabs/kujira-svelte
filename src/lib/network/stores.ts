@@ -1,11 +1,9 @@
 import { createKujiraClient } from "$lib/types";
 import { selectBestRPC, createTMClient } from "$lib/network/connect";
-import { adapterToIWallet } from "$lib/wallet/adapters";
-import { WalletAdapter, type ISigner } from "./wallet/adapters/types";
 import { persisted } from "svelte-persisted-store";
 import { get } from "svelte/store";
-import { refreshing } from "./refreshing";
-import type { Client } from "./network/types";
+import { refreshing } from "$lib/refreshing";
+import type { Client } from "./types";
 
 export type NetworkOptions = {
     [network: string]: {
@@ -13,25 +11,8 @@ export type NetworkOptions = {
     };
 };
 
-export type PersistedNetwork = { chainId: string; }
-
-export const savedAdapter = persisted('wallet-adapter', WalletAdapter.Disconnected);
 export const savedNetwork = persisted('network', { chainId: 'kaiyo-1' });
 export const savedNetworkOptions = persisted<NetworkOptions>('network-options', {});
-
-export const signer = refreshing<ISigner | null>(async (old) => {
-    if (old) old.disconnect();
-    const adapter = get(savedAdapter);
-    const network = get(savedNetwork);
-    let handle = await adapterToIWallet(adapter);
-    let wallet = await handle?.connect(network.chainId).catch((error) => {
-        console.error(error);
-        savedAdapter.set(WalletAdapter.Disconnected);
-        return null;
-    });
-    return wallet ?? null;
-}, { refreshOn: [savedAdapter, savedNetwork] });
-export const signerResolved = signer.resolved;
 
 export const client = refreshing<Client>(async () => {
     const { chainId } = get(savedNetwork);

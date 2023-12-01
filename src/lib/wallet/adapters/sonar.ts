@@ -8,9 +8,10 @@ import { get, writable } from "svelte/store";
 import { protoRegistry } from "../utils";
 import { WalletAdapter, type WalletMetadata, type ISigner, type AccountData } from "./types";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
-import { client, savedAdapter } from "$lib/stores";
 import type { Pubkey } from "@cosmjs/amino";
 import { validateAccount } from "./common";
+import { savedAdapter } from "../stores";
+import { client } from "$lib/network/stores";
 
 type Session = SessionTypes.Struct;
 

@@ -7,18 +7,13 @@
   import { WALLETS } from "$lib/wallet/adapters";
   import { MAINNET, NETWORKS } from "$lib/resources/networks";
   import { WalletAdapter, type Connectable } from "../adapters/types";
-  import {
-    client,
-    savedAdapter,
-    savedNetwork,
-    signer,
-    signerResolved,
-  } from "$lib/stores";
   import { SonarURI } from "../adapters/sonar";
   import IconSonar from "../icons/IconSonar.svelte";
   import QR from "./QR.svelte";
   import { refreshing } from "$lib/refreshing";
   import { Balance } from "../coin";
+  import { client, savedNetwork } from "$lib/network/stores";
+  import { savedAdapter, signer, signerResolved } from "../stores";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },

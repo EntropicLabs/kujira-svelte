@@ -1,11 +1,11 @@
 <script lang="ts">
   import { ChevronDown } from "lucide-svelte";
   import { NETWORKS } from "$lib/resources/networks";
-  import { client, savedNetwork } from "$lib/stores";
   import { createPopover, melt } from "@melt-ui/svelte";
   import { fade } from "svelte/transition";
   import { writable } from "svelte/store";
   import RpcSelect from "./RpcSelect.svelte";
+  import { client, savedNetwork } from "../stores";
 
   const open = writable(false);
   const {

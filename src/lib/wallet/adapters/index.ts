@@ -6,7 +6,7 @@ import { Leap } from "./leap";
 import { MetaMask } from "./metamask";
 import { XDefi } from "./xdefi";
 import { WalletAdapter, type Connectable } from "./types";
-import { signer } from "$lib/stores";
+import { signer } from "../stores";
 
 export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connectable | null> {
     switch (adapter) {
