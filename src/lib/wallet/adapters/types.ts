@@ -5,7 +5,7 @@ import type { MetaMask } from "./metamask";
 import type { Sonar } from "./sonar";
 import type { Station } from "./station";
 import type { XDefi } from "./xdefi";
-import type { GasPrice } from "@cosmjs/stargate";
+import type { StdFee } from "@cosmjs/stargate";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import type { Pubkey } from "@cosmjs/amino";
 
@@ -52,8 +52,7 @@ export interface ISigner {
     sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: number,
-        gasPrice: GasPrice,
+        fee: StdFee,
         memo?: string,
     ): Promise<Uint8Array>;
 }

@@ -1,10 +1,12 @@
 import { createWasmAminoConverters } from "@cosmjs/cosmwasm-stargate";
 import * as s from "@cosmjs/stargate";
-import { defaultRegistryTypes } from "@cosmjs/stargate";
+import { GasPrice, defaultRegistryTypes, type StdFee } from "@cosmjs/stargate";
 import { wasmTypes } from "@cosmjs/cosmwasm-stargate";
 import { ibcTypes } from "@cosmjs/stargate/build/modules";
-import { Registry } from "@cosmjs/proto-signing";
+import { Registry, coins } from "@cosmjs/proto-signing";
 import type BigNumber from "bignumber.js";
+import { Uint64 } from "@cosmjs/math";
+import type { GasInfo } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 
 const types = [
     ...defaultRegistryTypes,
@@ -47,4 +49,16 @@ export function formatBigNumber(value: BigNumber, decimals: number = 2): string 
     if (parts.length === 1) return integer;
     const decimal = parts[1];
     return `${integer}${localeDecimalSep()}${decimal}`;
+}
+
+export function calculateFee(gas: number | GasInfo, gasPrice: GasPrice, gasAdjustment: number = 1.0): StdFee {
+    if (typeof gas !== "number") {
+        gas = parseInt(gas.gasUsed.toString());
+    }
+    const amount = gasPrice.amount.multiply(Uint64.fromNumber(gas * gasAdjustment)).ceil().toString();
+    const fee = {
+        amount: coins(amount, gasPrice.denom),
+        gas: gas.toString(),
+    };
+    return fee;
 }

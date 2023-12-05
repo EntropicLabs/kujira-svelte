@@ -1,6 +1,6 @@
 import type { KujiraClient } from "$lib/network/types";
 import type { AccountData, ISigner } from "$lib/wallet/adapters/types";
-import { protoRegistry } from "$lib/wallet/utils";
+import { calculateFee, protoRegistry } from "$lib/wallet/utils";
 import type { EncodeObject } from "@cosmjs/proto-signing";
 import { GasPrice, accountFromAny } from "@cosmjs/stargate";
 import type { SimulateResponse } from "cosmjs-types/cosmos/tx/v1beta1/service";
@@ -39,15 +39,13 @@ export async function simulate(client: KujiraClient, account: AccountData, msgs:
 }
 
 export async function broadcastTx(client: KujiraClient, signer: ISigner, sim: SimulateResponse, msgs: EncodeObject[], memo: string = "", trackState?: Writable<TxStep>) {
-    const gasEstimate = parseInt(sim.gasInfo!.gasUsed.toString());
-    const gas = Math.round(gasEstimate * 1.4);
+    const fee = calculateFee(sim.gasInfo!, GasPrice.fromString("0.00125ukuji"), 1.4);
 
     trackState?.set(TxStep.Signing);
     const bytes = await signer.sign(
         client.getTmClient(),
         msgs,
-        gas,
-        GasPrice.fromString("0.00125ukuji"),
+        fee,
         memo
     );
 

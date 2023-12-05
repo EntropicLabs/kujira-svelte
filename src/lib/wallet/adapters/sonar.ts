@@ -1,6 +1,6 @@
 import IconSonar from "../icons/IconSonar.svelte";
 import type { EncodeObject } from "@cosmjs/proto-signing";
-import type { Account, GasPrice } from "@cosmjs/stargate";
+import type { Account, StdFee } from "@cosmjs/stargate";
 import Client, { SignClient } from "@walletconnect/sign-client";
 
 import type { SessionTypes } from "@walletconnect/types";
@@ -97,8 +97,7 @@ export class Sonar implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: number,
-        gasPrice: GasPrice,
+        fee: StdFee,
         memo?: string
     ): Promise<Uint8Array> {
         const bytes = await this.signClient.request<string>({
@@ -107,7 +106,7 @@ export class Sonar implements ISigner {
             request: {
                 method: this.session.namespaces["cosmos"].methods[0],
                 params: {
-                    feeDenom: gasPrice.denom,
+                    feeDenom: fee.amount[0].denom,
                     memo,
                     msgs: msgs
                         .map((m) => protoRegistry.encodeAsAny(m))
