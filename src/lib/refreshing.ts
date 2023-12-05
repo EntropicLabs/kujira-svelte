@@ -3,6 +3,8 @@ import { writable, type Readable, type Writable, get, readonly } from "svelte/st
 interface CreateRefreshingOptions {
     // Subscribe to these stores, trigger a reload when they change.
     refreshOn?: Readable<unknown> | Readable<unknown>[];
+    // Debounce the reloads of this store by this amount of time.
+    debounce?: number;
 }
 
 export type Refreshing<T> = Readable<Promise<T>> & {
@@ -10,7 +12,7 @@ export type Refreshing<T> = Readable<Promise<T>> & {
     resolved: Readable<T | undefined>;
 };
 
-export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { refreshOn = [] }: CreateRefreshingOptions = {}): Refreshing<T> {
+export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { refreshOn = [], debounce = undefined }: CreateRefreshingOptions = {}): Refreshing<T> {
     let resolvedStore: Writable<T | undefined> = writable(undefined);
     let currentPromise: Promise<T> | undefined = undefined;
     const fnPromise = async () => {
@@ -39,9 +41,18 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
     let refreshArr = Array.isArray(refreshOn) ? refreshOn : [refreshOn];
     let refreshValues = refreshArr.map((store) => get(store));
 
+    let timeout: NodeJS.Timeout | undefined = undefined;
     const reload = () => {
-        thisPromise = fnPromise();
-        store.set(thisPromise);
+        if (timeout) clearTimeout(timeout);
+        if (debounce) {
+            timeout = setTimeout(() => {
+                thisPromise = fnPromise();
+                store.set(thisPromise);
+            }, debounce);
+        } else {
+            thisPromise = fnPromise();
+            store.set(thisPromise);
+        }
     }
     store = writable<Promise<T>>(undefined, (set) => {
         set(thisPromise);

@@ -1,4 +1,3 @@
-import type { EncodeObject } from "@cosmjs/proto-signing";
 import {
     MsgExec,
     MsgGrant,
@@ -39,7 +38,7 @@ import {
 } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 
-export const msg: { [module: string]: { [method: string]: (i: any) => EncodeObject; } } = {
+export const msg = {
     authz: {
         msgExec: (i: MsgExec) => ({
             typeUrl: "/cosmos.authz.v1beta1.MsgExec",

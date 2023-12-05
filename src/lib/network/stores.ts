@@ -1,5 +1,4 @@
-import { createKujiraClient } from "$lib/types";
-import { selectBestRPC, createTMClient } from "$lib/network/connect";
+import { selectBestRPC, createTMClient, createKujiraClient } from "$lib/network/connect";
 import { persisted } from "svelte-persisted-store";
 import { get } from "svelte/store";
 import { refreshing } from "$lib/refreshing";

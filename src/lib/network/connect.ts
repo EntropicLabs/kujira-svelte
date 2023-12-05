@@ -1,11 +1,12 @@
 import { NETWORKS } from "$lib/resources/networks";
-import { HttpBatchClient, Tendermint37Client, type StatusResponse, type TendermintClient } from "@cosmjs/tendermint-rpc";
+import { HttpBatchClient, Tendermint37Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
 import type { Client, KujiraClient } from "./types";
 import { QueryClient, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension, setupTxExtension } from "@cosmjs/stargate";
 import { setupWasmExtension } from "@cosmjs/cosmwasm-stargate";
+import { setupBankExtensionExtended } from "./cosmos/bank";
 
 
-export async function createTMClient(rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<TendermintClient> {
+export async function createTMClient(rpc: string, dispatchInterval: number = 100, batchSizeLimit: number = 200): Promise<Tendermint37Client> {
     return Tendermint37Client.create(
         new HttpBatchClient(rpc, {
             dispatchInterval,
@@ -19,7 +20,7 @@ export async function selectBestRPC(chainId: string, staleThreshold: number = 10
     let latestHeight = 0;
 
     const rpcs = NETWORKS[chainId].rpcs;
-    let clients: { client: TendermintClient, rpc: string, latency: number, status: StatusResponse }[] = [];
+    let clients: { client: Tendermint37Client, rpc: string, latency: number, status: StatusResponse }[] = [];
     const promises = rpcs.map(async (rpc) => {
         const client = await createTMClient(rpc);
         const status = await client.status();
@@ -53,11 +54,11 @@ export async function selectBestRPC(chainId: string, staleThreshold: number = 10
     return { client: await createKujiraClient(clients[0].client), rpc: clients[0].rpc, chainId };
 }
 
-export async function createKujiraClient(client: TendermintClient): Promise<KujiraClient> {
+export async function createKujiraClient(client: Tendermint37Client): Promise<KujiraClient> {
     let qc = QueryClient.withExtensions(client,
         setupAuthExtension,
         setupAuthzExtension,
-        setupBankExtension,
+        setupBankExtensionExtended,
         setupGovExtension,
         setupStakingExtension,
         setupTxExtension,
