@@ -46,7 +46,7 @@
       const s = await $signer;
       const c = await $client;
       if (!s) throw new Error("No signer connected");
-      let coins = await c.client.bank.allBalances(s.account().address);
+      let coins = await c.bank.allBalances(s.account().address);
       return coins.map((c) => Balance.from(c));
     },
     { refreshOn: [signer] }

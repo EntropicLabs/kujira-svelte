@@ -35,7 +35,7 @@
       const m = await $msgs;
       status.set(TxStep.None);
       if (!s) throw new Error("No signer connected");
-      return await simulate(c.client, s.account(), m, "", status);
+      return await simulate(c, s.account(), m, "", status);
     },
     { refreshOn: [msgs], debounce: 300 }
   );
@@ -46,7 +46,7 @@
     if (!s) throw new Error("No signer connected");
     const sim = await $txSim;
     const m = await $msgs;
-    return await broadcastTx(c.client, s, sim, m, "", status);
+    return await broadcastTx(c, s, sim, m, "", status);
   }
 </script>
 

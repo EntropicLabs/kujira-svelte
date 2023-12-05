@@ -2,7 +2,7 @@ import { selectBestRPC, createTMClient, createKujiraClient } from "$lib/network/
 import { persisted } from "svelte-persisted-store";
 import { get } from "svelte/store";
 import { refreshing } from "$lib/refreshing";
-import type { Client } from "./types";
+import type { KujiraClient } from "./types";
 
 export type NetworkOptions = {
     [network: string]: {
@@ -13,7 +13,7 @@ export type NetworkOptions = {
 export const savedNetwork = persisted('network', { chainId: 'kaiyo-1' });
 export const savedNetworkOptions = persisted<NetworkOptions>('network-options', {});
 
-export const client = refreshing<Client>(async () => {
+export const client = refreshing<KujiraClient>(async () => {
     const { chainId } = get(savedNetwork);
     const { preferredRpc } = get(savedNetworkOptions)[chainId] ?? {};
     let c;
@@ -22,8 +22,7 @@ export const client = refreshing<Client>(async () => {
         c = await selectBestRPC(chainId);
     } else {
         // We want to use the preferred RPC
-        const kc = await createKujiraClient(await createTMClient(preferredRpc));
-        c = { client: kc, rpc: preferredRpc, chainId };
+        c = await createKujiraClient(await createTMClient(preferredRpc), chainId, preferredRpc);
     }
     return c
 }, { refreshOn: [savedNetwork, savedNetworkOptions] });

@@ -12,8 +12,8 @@
   } = createPopover({ open, positioning: { placement: "right", flip: true } });
 
   let activeRpc = writable<string | undefined>(undefined);
-  $: $client.then(({ rpc }) => {
-    activeRpc.set(rpc);
+  $: $client.then((c) => {
+    activeRpc.set(c.getRpc());
   });
   $: activeRpc.set(
     $savedNetworkOptions[$savedNetwork.chainId]?.preferredRpc || undefined

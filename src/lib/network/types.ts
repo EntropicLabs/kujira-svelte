@@ -5,6 +5,12 @@ import type { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import type { Tendermint37Client } from "@cosmjs/tendermint-rpc";
 import type { BankExtensionExtended } from "./cosmos/bank";
 
+export interface ClientExtension {
+    getTmClient: () => Tendermint37Client;
+    getChainId: () => string;
+    getRpc: () => string;
+}
+
 export type KujiraClient = QueryClient &
     AuthExtension &
     AuthzExtension &
@@ -13,10 +19,4 @@ export type KujiraClient = QueryClient &
     StakingExtension &
     TxExtension &
     WasmExtension &
-{ getTmClient: () => Tendermint37Client };
-
-export type Client = {
-    client: KujiraClient;
-    rpc: string;
-    chainId: string;
-};
+    ClientExtension;

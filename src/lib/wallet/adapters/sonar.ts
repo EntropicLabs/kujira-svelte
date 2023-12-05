@@ -38,8 +38,7 @@ export class Sonar implements ISigner {
     }
 
     public static async connect(chain: string): Promise<Sonar> {
-        const rpc = (await get(client)).client;
-        console.log("sonar init");
+        const rpc = (await get(client));
         const signClient = await SignClient.init({
             projectId: "fbda64846118d1a3487a4bfe3a6b00ac",
         });

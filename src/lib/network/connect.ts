@@ -1,6 +1,6 @@
 import { NETWORKS } from "$lib/resources/networks";
 import { HttpBatchClient, Tendermint37Client, type StatusResponse } from "@cosmjs/tendermint-rpc";
-import type { Client, KujiraClient } from "./types";
+import type { KujiraClient } from "./types";
 import { QueryClient, setupAuthExtension, setupAuthzExtension, setupBankExtension, setupGovExtension, setupStakingExtension, setupTxExtension } from "@cosmjs/stargate";
 import { setupWasmExtension } from "@cosmjs/cosmwasm-stargate";
 import { setupBankExtensionExtended } from "./cosmos/bank";
@@ -15,7 +15,7 @@ export async function createTMClient(rpc: string, dispatchInterval: number = 100
     );
 }
 
-export async function selectBestRPC(chainId: string, staleThreshold: number = 10): Promise<Client> {
+export async function selectBestRPC(chainId: string, staleThreshold: number = 10): Promise<KujiraClient> {
     const startTime = Date.now();
     let latestHeight = 0;
 
@@ -51,10 +51,10 @@ export async function selectBestRPC(chainId: string, staleThreshold: number = 10
         throw new Error(`No RPCs available for ${chainId}`);
     }
 
-    return { client: await createKujiraClient(clients[0].client), rpc: clients[0].rpc, chainId };
+    return await createKujiraClient(clients[0].client, chainId, clients[0].rpc);
 }
 
-export async function createKujiraClient(client: Tendermint37Client): Promise<KujiraClient> {
+export async function createKujiraClient(client: Tendermint37Client, chainId: string, rpc: string): Promise<KujiraClient> {
     let qc = QueryClient.withExtensions(client,
         setupAuthExtension,
         setupAuthzExtension,
@@ -66,6 +66,12 @@ export async function createKujiraClient(client: Tendermint37Client): Promise<Ku
     );
     Object.defineProperty(qc, 'getTmClient', {
         value: function () { return this.tmClient; },
+    });
+    Object.defineProperty(qc, 'getChainId', {
+        value: function () { return chainId; },
+    });
+    Object.defineProperty(qc, 'getRpc', {
+        value: function () { return rpc; },
     });
     return qc as KujiraClient;
 }
