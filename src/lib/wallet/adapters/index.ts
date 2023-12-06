@@ -7,6 +7,7 @@ import { MetaMask } from "./metamask";
 import { XDefi } from "./xdefi";
 import { WalletAdapter, type Connectable } from "./types";
 import { signer } from "../stores";
+import { ReadOnly } from "./readonly";
 
 export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connectable | null> {
     switch (adapter) {
@@ -28,12 +29,15 @@ export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connecta
         case WalletAdapter.XDefi:
             const { XDefi } = await import("./xdefi");
             return XDefi;
+        case WalletAdapter.Readonly:
+            const { ReadOnly } = await import("./readonly");
+            return ReadOnly;
         default:
             return null;
     }
 }
 
-export const WALLETS: Connectable[] = [Sonar, /*MetaMask,*/ Keplr, Leap, Station, XDefi];
+export const WALLETS: Connectable[] = [Sonar, /*MetaMask,*/ Keplr, Leap, Station, XDefi, ReadOnly];
 
 let hasSetupEventListeners = false;
 export function setupEventListeners(): void {
