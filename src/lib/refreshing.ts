@@ -1,4 +1,4 @@
-import { writable, type Readable, type Writable, get, readonly } from "svelte/store";
+import { writable, type Readable, type Writable, get, readonly, readable } from "svelte/store";
 
 interface CreateRefreshingOptions {
     // Subscribe to these stores, trigger a reload when they change.
@@ -21,20 +21,14 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
             else return await fn(get(resolvedStore));
         })();
 
-        let result = await (promise.catch((e) => {
-            if (currentPromise === promise) {
-                resolvedStore.set(undefined);
-                throw e;
-            }
-            return undefined;
-        }));
+        let result = await promise.catch(() => undefined);
         // Only set the resolved store if this is the most recent promise.
         if (currentPromise === promise) resolvedStore.set(result);
         return result as T;
     }
+    fnPromise();
 
     let store: Writable<Promise<T>>;
-    let thisPromise: Promise<T> = fnPromise();
     let unsubs: (() => void)[] = [];
     // We serialize the refresh values to make sure that when we subscribe to the
     // refreshes, we don't accidentally trigger a refresh.
@@ -46,16 +40,16 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
         if (timeout) clearTimeout(timeout);
         if (debounce) {
             timeout = setTimeout(() => {
-                thisPromise = fnPromise();
-                store.set(thisPromise);
+                fnPromise();
+                store.set(currentPromise!);
             }, debounce);
         } else {
-            thisPromise = fnPromise();
-            store.set(thisPromise);
+            fnPromise();
+            store.set(currentPromise!);
         }
     }
     store = writable<Promise<T>>(undefined, (set) => {
-        set(thisPromise);
+        set(currentPromise!);
 
         refreshArr.forEach((store, i) => {
             let unsub = store.subscribe((value) => {
@@ -77,4 +71,25 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
         reload,
         resolved: readonly(resolvedStore),
     };
+}
+
+export type Status = "loading" | "error" | "success";
+export function statusOf<T>(store: Readable<T>): Readable<Status> {
+    let currentPromise: Promise<T> | undefined = undefined;
+    return readable<Status>("loading", (set) => {
+        let unsub = store.subscribe((value) => {
+            if (value instanceof Promise) {
+                set("loading");
+                currentPromise = value;
+                value.then(() => {
+                    if (currentPromise === value) set("success");
+                }).catch(() => {
+                    if (currentPromise === value) set("error");
+                });
+            } else {
+                set("success");
+            }
+        });
+        return unsub;
+    });
 }

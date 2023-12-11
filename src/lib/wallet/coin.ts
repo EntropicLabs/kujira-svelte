@@ -41,16 +41,20 @@ export class Balance {
   public toCoins(): Coin[] {
     return [this.toCoin()]
   }
+
+  public known(): boolean {
+    return this.name !== this.denom;
+  }
 }
 
 export class Balances {
-  constructor(readonly arr: Balance[]) { }
+  constructor(public readonly coins: Balance[]) { }
   static from = (balances: Balance[]) => new Balances(balances);
   static fromCoins = (coins: Coin[]) => new Balances(coins.map((coin) => Balance.from(coin)));
   static fromHuman = (amount: string, denom: string) => Balances.from([Balance.fromHuman(amount, denom)]);
 
   public get(denom: string): Balance | undefined {
-    return this.arr.find((balance) => balance.denom === denom);
+    return this.coins.find((balance) => balance.denom === denom);
   }
 
   public getOrZero(denom: string): Balance {
