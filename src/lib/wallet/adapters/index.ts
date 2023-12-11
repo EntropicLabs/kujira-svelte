@@ -23,12 +23,15 @@ export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connecta
         case WalletAdapter.XDefi:
             const { XDefi } = await import("./xdefi");
             return XDefi;
+        case WalletAdapter.Readonly:
+            const { ReadOnly } = await import("./readonly");
+            return ReadOnly;
         default:
             return null;
     }
 }
 
-export const WALLETS: WalletAdapter[] = [WalletAdapter.Sonar, /*WalletAdapter.MetaMask,*/ WalletAdapter.Keplr, WalletAdapter.Leap, WalletAdapter.Station, WalletAdapter.XDefi];
+export const WALLETS: WalletAdapter[] = [WalletAdapter.Sonar, /*WalletAdapter.MetaMask,*/ WalletAdapter.Keplr, WalletAdapter.Leap, WalletAdapter.Station, WalletAdapter.XDefi, WalletAdapter.Readonly];
 
 let hasSetupEventListeners = false;
 export function setupEventListeners(): void {

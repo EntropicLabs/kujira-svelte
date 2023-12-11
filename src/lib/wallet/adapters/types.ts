@@ -8,6 +8,7 @@ import type { XDefi } from "./xdefi";
 import type { StdFee } from "@cosmjs/stargate";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import type { Pubkey } from "@cosmjs/amino";
+import type { ReadOnly } from "./readonly";
 
 export interface AccountData {
     address: string;
@@ -43,7 +44,7 @@ type ISignerStatic<T> = {
     isInstalled(): Promise<boolean>;
     metadata: WalletMetadata;
 };
-export type Connectable = ISignerStatic<Keplr> | ISignerStatic<Sonar> | ISignerStatic<Leap> | ISignerStatic<MetaMask> | ISignerStatic<Station> | ISignerStatic<XDefi>;
+export type Connectable = ISignerStatic<Keplr> | ISignerStatic<Sonar> | ISignerStatic<Leap> | ISignerStatic<MetaMask> | ISignerStatic<Station> | ISignerStatic<XDefi> | ISignerStatic<ReadOnly>;
 
 export interface ISigner {
     disconnect: () => void;
