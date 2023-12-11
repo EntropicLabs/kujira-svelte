@@ -4,16 +4,18 @@
   import { fade } from "svelte/transition";
   import autoAnimate from "@formkit/auto-animate";
   import { Copy, Search, Wallet2 } from "lucide-svelte";
-  import { WALLETS } from "$lib/wallet/adapters";
+  import { WALLETS, adapterToIWallet } from "$lib/wallet/adapters";
   import { MAINNET, NETWORKS } from "$lib/resources/networks";
   import { WalletAdapter, type Connectable } from "../adapters/types";
   import { SonarURI } from "../adapters/sonar";
   import IconSonar from "../icons/IconSonar.svelte";
   import QR from "./QR.svelte";
-  import { refreshing } from "$lib/refreshing";
-  import { Balance } from "../coin";
   import { client, savedNetwork } from "$lib/network/stores";
   import { savedAdapter, signer, signerResolved } from "../stores";
+  import { refreshing } from "$lib/refreshing";
+  import { Balance, Balances } from "../coin";
+  import { get } from "svelte/store";
+  import { PageRequest } from "cosmjs-types/cosmos/base/query/v1beta1/pagination";
 
   const {
     elements: { trigger: popoverTrigger, content: popoverContent },
@@ -24,7 +26,9 @@
 
   let installedWallets: Connectable[] = [];
   let uninstalledWallets: Connectable[] = [];
-  WALLETS.map(async (wallet: Connectable) => {
+  WALLETS.map(async (adapter: WalletAdapter) => {
+    const wallet = await adapterToIWallet(adapter);
+    if (!wallet) return;
     if (await wallet.isInstalled()) {
       installedWallets.push(wallet);
     } else {
@@ -43,13 +47,19 @@
 
   const balances = refreshing(
     async () => {
-      const s = await $signer;
-      const c = await $client;
-      if (!s) throw new Error("No signer connected");
-      let coins = await c.bank.allBalances(s.account().address);
-      return coins.map((c) => Balance.from(c));
+      const s = await get(signer);
+      const c = await get(client);
+      if (!s) return Balances.from([]);
+      const coins = await c.bank.allBalances(
+        s.account().address,
+        PageRequest.fromPartial({ limit: 200 })
+      );
+      const balances = coins
+        .map((coin) => Balance.from(coin))
+        .sort((a, b) => b.normalized().minus(a.normalized()).toNumber());
+      return Balances.from(balances);
     },
-    { refreshOn: [signer] }
+    { refreshOn: [signer, client] }
   );
 </script>
 
@@ -116,7 +126,8 @@
         </div>
         {#await $balances}
           <p class="text-xs text-center">Loading balances...</p>
-        {:then coins}
+        {:then balances}
+          {@const coins = balances.coins.filter((c) => c.known())}
           {#if coins.length === 0}
             <p class="text-xs text-center">No balances found</p>
           {:else}
@@ -136,7 +147,7 @@
               </p>
             {/if}
           {/if}
-        {:catch _}
+        {:catch}
           <p class="text-xs text-center">Failed to load balances</p>
         {/await}
         <button
