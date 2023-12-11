@@ -5,10 +5,10 @@ import type { MetaMask } from "./metamask";
 import type { Sonar } from "./sonar";
 import type { Station } from "./station";
 import type { XDefi } from "./xdefi";
-import type { ReadOnly } from "./readonly";
-import type { GasPrice } from "@cosmjs/stargate";
+import type { StdFee } from "@cosmjs/stargate";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import type { Pubkey } from "@cosmjs/amino";
+import type { ReadOnly } from "./readonly";
 
 export interface AccountData {
     address: string;
@@ -53,8 +53,7 @@ export interface ISigner {
     sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: number,
-        gasPrice: GasPrice,
+        fee: StdFee,
         memo?: string,
     ): Promise<Uint8Array>;
 }

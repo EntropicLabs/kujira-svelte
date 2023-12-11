@@ -36,23 +36,23 @@ export const NETWORKS: Record<string, NetworkMetadata> = {
         icon: IconKujira,
         explorer: `https://finder.kujira.network/${MAINNET}`,
         rpcs: [
-            // "https://kujira-mainnet-rpc.autostake.com",
-            "https://kujira-rpc.ibs.team",
-            "https://kujira-rpc.nodes.defiantlabs.net",
-            "https://kujira-rpc.openbitlab.com",
-            // "https://kujira-rpc.theamsolutions.info",
-            "https://kujira.rpc.ghostinnet.com",
-            "https://kujira.rpc.kjnodes.com",
-            "https://rpc-kujira.capybaralabs.com/",
             "https://rpc-kujira.mintthemoon.xyz",
-            "https://rpc-kujira.mms.team",
+            "https://kujira-rpc.polkachu.com",
+            "https://rpc-kujira.starsquid.io",
+            // "https://kujira-mainnet-rpc.autostake.com",
+            // "https://kujira-rpc.ibs.team",
+            // "https://kujira-rpc.nodes.defiantlabs.net",
+            // "https://kujira-rpc.openbitlab.com",
+            // "https://kujira-rpc.theamsolutions.info",
+            // "https://kujira.rpc.ghostinnet.com",
+            // "https://kujira.rpc.kjnodes.com",
+            // "https://rpc-kujira.capybaralabs.com/",
+            // "https://rpc-kujira.mms.team",
             // "https://rpc-kujira.rorcualnodes.com",
-            // "https://rpc-kujira.starsquid.io",
-            "https://rpc-kujira.synergynodes.com",
-            "https://rpc.kujira.rektdao.club",
+            // "https://rpc-kujira.synergynodes.com",
+            // "https://rpc.kujira.rektdao.club",
             // "https://kuji-rpc.kleomedes.network",
             // "https://kujira-rpc.lavenderfive.com",
-            // "https://kujira-rpc.polkachu.com",
             // "https://rpc-kujira.whispernode.com",
         ],
     },
@@ -75,6 +75,7 @@ const chainInfo = (
 ) => ({
     chainId,
     chainName,
+    chainSymbolImageUrl: "https://assets.leapwallet.io/kujira-chain-logo.png",
     rpc,
     rest,
     bip44: {
@@ -120,7 +121,7 @@ const chainInfo = (
     coinType: 118,
 });
 
-export const CHAIN_INFO: Record<NETWORK, ChainInfo> = {
+export const CHAIN_INFO: Record<NETWORK, ChainInfo & { chainSymbolImageUrl: string }> = {
     [TESTNET]: chainInfo(
         TESTNET,
         "Kujira Testnet",

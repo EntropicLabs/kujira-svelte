@@ -1,13 +1,7 @@
 import { get } from "svelte/store";
-import { Sonar } from "./sonar";
-import { Station } from "./station";
-import { Keplr } from "./keplr";
-import { Leap } from "./leap";
-import { MetaMask } from "./metamask";
-import { XDefi } from "./xdefi";
 import { WalletAdapter, type Connectable } from "./types";
 import { signer } from "../stores";
-import { ReadOnly } from "./readonly";
+import { browser } from "$app/environment";
 
 export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connectable | null> {
     switch (adapter) {
@@ -37,11 +31,11 @@ export async function adapterToIWallet(adapter: WalletAdapter): Promise<Connecta
     }
 }
 
-export const WALLETS: Connectable[] = [Sonar, /*MetaMask,*/ Keplr, Leap, Station, XDefi, ReadOnly];
+export const WALLETS: WalletAdapter[] = [WalletAdapter.Sonar, /*WalletAdapter.MetaMask,*/ WalletAdapter.Keplr, WalletAdapter.Leap, WalletAdapter.Station, WalletAdapter.XDefi, WalletAdapter.Readonly];
 
 let hasSetupEventListeners = false;
 export function setupEventListeners(): void {
-    if (hasSetupEventListeners) return;
+    if (hasSetupEventListeners || !browser) return;
     hasSetupEventListeners = true;
 
     window.addEventListener("keplr_keystorechange", async () => {

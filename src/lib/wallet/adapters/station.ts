@@ -3,7 +3,7 @@ import { WalletAdapter, type AccountData, type WalletMetadata, ConnectionError, 
 import IconStation from "../icons/IconStation.svelte";
 import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
-import type { GasPrice } from "@cosmjs/stargate";
+import type { StdFee } from "@cosmjs/stargate";
 import type { ChainInfoResponse } from "@terra-money/station-connector/keplrConnector";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import { convertAccountData, offlineSignerSign } from "./common";
@@ -55,10 +55,9 @@ export class Station implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: number,
-        gasPrice: GasPrice,
+        fee: StdFee,
         memo?: string
     ): Promise<Uint8Array> {
-        return offlineSignerSign(this.signer, this.acc.address, client, msgs, gasLimit, gasPrice, memo);
+        return offlineSignerSign(this.signer, this.acc.address, client, msgs, fee, memo);
     }
 }

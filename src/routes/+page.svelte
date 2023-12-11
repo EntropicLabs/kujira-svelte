@@ -8,6 +8,7 @@
   import { TxStep, broadcastTx, simulate } from "$lib/helpers/transaction";
   import { writable } from "svelte/store";
   import type { EncodeObject } from "@cosmjs/proto-signing";
+  import { readonlySignerAddress } from "$lib/wallet/adapters/readonly";
 
   const status = writable<TxStep>(TxStep.None);
 
@@ -64,8 +65,9 @@
   </div>
   <h3 class="text-xl">WalletWidget</h3>
   <p>A component to allow the user to connect their wallet.</p>
-  <div class="w-full flex items-center justify-center m-4">
+  <div class="w-full flex flex-col items-center justify-center m-4 gap-2">
     <WalletWidget />
+    <input type="text" bind:value={$readonlySignerAddress} class="p-2 border rounded-lg" placeholder="Readonly Address" />
   </div>
   <h3 class="text-xl">Example Transaction</h3>
   <div class="flex flex-col items-start">

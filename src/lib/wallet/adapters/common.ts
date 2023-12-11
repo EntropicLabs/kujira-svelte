@@ -1,6 +1,5 @@
-import { Uint64 } from "@cosmjs/math";
-import { coins, type AccountData as CosmAccountData, type EncodeObject, type OfflineSigner } from "@cosmjs/proto-signing";
-import { SigningStargateClient, type GasPrice, type Account, accountFromAny } from "@cosmjs/stargate";
+import type { AccountData as CosmAccountData, EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
+import { SigningStargateClient, type Account, accountFromAny, type StdFee } from "@cosmjs/stargate";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import { aminoTypes, protoRegistry } from "../utils";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
@@ -13,20 +12,13 @@ export async function offlineSignerSign(
     address: string,
     client: TendermintClient,
     msgs: EncodeObject[],
-    gasLimit: number,
-    gasPrice: GasPrice,
+    fee: StdFee,
     memo?: string
 ): Promise<Uint8Array> {
-    const amount = gasPrice.amount.multiply(Uint64.fromNumber(gasLimit)).ceil().toString();
-    const fee = {
-        amount: coins(amount, gasPrice.denom),
-        gas: gasLimit.toString(),
-    };
     const s = await SigningStargateClient.createWithSigner(
         client,
         signer,
         {
-            gasPrice,
             registry: protoRegistry,
             aminoTypes: aminoTypes("kujira")
         }
