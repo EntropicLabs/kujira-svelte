@@ -1,7 +1,7 @@
 import IconKeplr from "../icons/IconKeplr.svelte";
 import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
 import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
-import type { GasPrice } from "@cosmjs/stargate";
+import type { StdFee } from "@cosmjs/stargate";
 import type { Window as KeplrWindow } from "@keplr-wallet/types";
 import { WalletAdapter, type AccountData, type WalletMetadata, ConnectionError, type ISigner } from "./types";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
@@ -53,10 +53,9 @@ export class Keplr implements ISigner {
     public async sign(
         client: TendermintClient,
         msgs: EncodeObject[],
-        gasLimit: number,
-        gasPrice: GasPrice,
+        fee: StdFee,
         memo?: string
     ): Promise<Uint8Array> {
-        return offlineSignerSign(this.signer, this.acc.address, client, msgs, gasLimit, gasPrice, memo);
+        return offlineSignerSign(this.signer, this.acc.address, client, msgs, fee, memo);
     }
 }
