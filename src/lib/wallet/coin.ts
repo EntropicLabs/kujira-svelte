@@ -27,7 +27,7 @@ export class Balance {
   }
 
   public humanAmount(decimals: number = 2): string {
-    return formatBigNumber(this.amount.div(new BigNumber(10).pow(this.dec)), decimals);
+    return formatBigNumber(this.normalized(), decimals);
   }
 
   public display(decimals?: number): string {

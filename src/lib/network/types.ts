@@ -5,6 +5,12 @@ import type { WasmExtension } from "@cosmjs/cosmwasm-stargate";
 import type { Tendermint37Client } from "@cosmjs/tendermint-rpc";
 import type { BankExtensionExtended } from "./cosmos/bank";
 
+export type NetworkOptions = {
+    [network: string]: {
+        preferredRpc: string | null;
+    };
+};
+
 export interface ClientExtension {
     getTmClient: () => Tendermint37Client;
     getChainId: () => string;

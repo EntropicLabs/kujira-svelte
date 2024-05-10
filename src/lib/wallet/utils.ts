@@ -55,7 +55,8 @@ export function calculateFee(gas: number | GasInfo, gasPrice: GasPrice, gasAdjus
     if (typeof gas !== "number") {
         gas = parseInt(gas.gasUsed.toString());
     }
-    const amount = gasPrice.amount.multiply(Uint64.fromNumber(Math.round(gas * gasAdjustment))).ceil().toString();
+    gas = Math.ceil(gas * gasAdjustment);
+    const amount = gasPrice.amount.multiply(Uint64.fromNumber(Math.round(gas))).ceil().toString();
     const fee = {
         amount: coins(amount, gasPrice.denom),
         gas: gas.toString(),

@@ -1,11 +1,12 @@
 import { adapterToIWallet } from "$lib/wallet/adapters";
 import { persisted } from "svelte-persisted-store";
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { WalletAdapter, type ISigner } from "./adapters/types";
 import { refreshing } from "$lib/refreshing";
 import { savedNetwork } from "$lib/network/stores";
+import { browser } from "$app/environment";
 
-export const savedAdapter = persisted('wallet-adapter', WalletAdapter.Disconnected);
+export const savedAdapter = browser ? persisted('wallet-adapter', WalletAdapter.Disconnected) : writable(WalletAdapter.Disconnected);
 
 export const signer = refreshing<ISigner | null>(async (old) => {
     if (old) old.disconnect();

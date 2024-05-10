@@ -18,8 +18,8 @@ type Session = SessionTypes.Struct;
 const requiredNamespaces = {
     cosmos: {
         chains: ["cosmos:kaiyo-1"],
-        methods: [],
-        events: [],
+        methods: [] as string[],
+        events: [] as string[],
     },
 };
 
@@ -67,7 +67,16 @@ export class Sonar implements ISigner {
 
         uri && SonarURI.set(uri);
 
-        const session = await approval();
+        const uriPromise = new Promise<never>((_, reject) => {
+            const unsub = SonarURI.subscribe((uri) => {
+                if (!uri) {
+                    unsub();
+                    reject(new Error("Sonar connection rejected"));
+                }
+            });
+        });
+
+        const session = await Promise.race([approval(), uriPromise]);
 
         SonarURI.set(null);
         const [addr] = session.namespaces["cosmos"].accounts;
