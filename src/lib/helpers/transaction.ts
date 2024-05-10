@@ -47,7 +47,7 @@ export async function simulate(client: KujiraClient, account: AccountData, msgs:
 
 export async function broadcastTx(client: KujiraClient, signer: ISigner, sim: SimulateResponse, msgs: EncodeObject[], memo: string = "", trackState?: Writable<TxStep>) {
     try {
-        const fee = calculateFee(sim.gasInfo!, GasPrice.fromString("0.0034ukuji"), 1.4);
+        const fee = calculateFee(sim.gasInfo!, GasPrice.fromString("0.0034ukuji"), 1.7);
 
         trackState?.set(TxStep.Signing);
         const bytes = await signer.sign(

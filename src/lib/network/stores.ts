@@ -36,6 +36,7 @@ export const client = refreshing<KujiraClient>(async () => {
         }
     };
     const c = await select();
+    console.log(c?.getTmClient());
     if (c) return c;
     // infinite promise
     await new Promise(() => { });
