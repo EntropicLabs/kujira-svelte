@@ -51,7 +51,7 @@ export async function broadcastTx(client: KujiraClient, signer: ISigner, sim: Si
 
         trackState?.set(TxStep.Signing);
         const bytes = await signer.sign(
-            client.getTmClient(),
+            client.getCometClient(),
             msgs,
             fee,
             memo

@@ -52,7 +52,7 @@
       if (!s) return Balances.from([]);
       const coins = await c.bank.allBalances(
         s.account().address,
-        PageRequest.fromPartial({ limit: 200 })
+        PageRequest.fromPartial({ limit: BigInt(200) })
       );
       const balances = coins
         .map((coin) => Balance.from(coin))

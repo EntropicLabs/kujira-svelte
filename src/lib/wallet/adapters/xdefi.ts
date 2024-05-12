@@ -3,7 +3,7 @@ import { CHAIN_INFO, type NETWORK } from "$lib/resources/networks";
 import { WalletAdapter, type AccountData, type WalletMetadata, ConnectionError, type ISigner } from "./types";
 import type { EncodeObject, OfflineSigner } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/stargate";
-import type { Window as KeplrWindow, Keplr } from "@keplr-wallet/types";
+import type { Keplr, Window as KeplrWindow } from "@keplr-wallet/types";
 import type { TendermintClient } from "@cosmjs/tendermint-rpc";
 import { convertAccountData, offlineSignerSign } from "./common";
 
@@ -33,7 +33,7 @@ export class XDefi implements ISigner {
             if (accounts.length === 0) {
                 throw ConnectionError.NoAccounts;
             }
-            return new XDefi(convertAccountData(accounts[0]), offlineSigner);
+            return new XDefi(convertAccountData(accounts[0]), offlineSigner as OfflineSigner);
         } catch (error) {
             console.error(error);
             throw ConnectionError.GenericError;

@@ -3,7 +3,7 @@ import { BroadcastTxError, fromTendermintEvent, type DeliverTxResponse, type Ind
 import { TxMsgData } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 
 export async function doBroadcastTx(client: KujiraClient, tx: Uint8Array) {
-    const broadcasted = await client.getTmClient().broadcastTxSync({ tx });
+    const broadcasted = await client.getCometClient().broadcastTxSync({ tx });
     if (broadcasted.code) {
         throw new BroadcastTxError(broadcasted.code, broadcasted.codespace ?? "", broadcasted.log);
     }
@@ -18,7 +18,7 @@ export async function getTx(client: KujiraClient, id: string): Promise<IndexedTx
 }
 
 async function txsQuery(client: KujiraClient, query: string): Promise<IndexedTx[]> {
-    const results = await client.getTmClient().txSearchAll({ query: query });
+    const results = await client.getCometClient().txSearchAll({ query: query });
     return results.txs.map((tx): IndexedTx => {
         const txMsgData = TxMsgData.decode(tx.result.data ?? new Uint8Array());
         return {

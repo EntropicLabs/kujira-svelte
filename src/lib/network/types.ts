@@ -12,7 +12,7 @@ export type NetworkOptions = {
 };
 
 export interface ClientExtension {
-    getTmClient: () => Tendermint37Client;
+    getCometClient: () => Tendermint37Client;
     getChainId: () => string;
     getRpc: () => string;
 }

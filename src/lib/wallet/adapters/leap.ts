@@ -31,7 +31,7 @@ export class Leap implements ISigner {
             if (accounts.length === 0) {
                 throw ConnectionError.NoAccounts;
             }
-            return new Leap(convertAccountData(accounts[0]), offlineSigner);
+            return new Leap(convertAccountData(accounts[0]), offlineSigner as OfflineSigner);
         } catch (error) {
             console.error(error);
             throw ConnectionError.GenericError;

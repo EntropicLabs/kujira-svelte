@@ -66,8 +66,8 @@ export async function createKujiraClient(client: Tendermint37Client, chainId: st
         setupTxExtension,
         setupWasmExtension,
     );
-    Object.defineProperty(qc, 'getTmClient', {
-        value: function () { return this.tmClient; },
+    Object.defineProperty(qc, 'getCometClient', {
+        value: function () { return this.cometClient; },
     });
     Object.defineProperty(qc, 'getChainId', {
         value: function () { return chainId; },
