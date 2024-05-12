@@ -19,5 +19,5 @@ export const signer = refreshing<ISigner | null>(async (old) => {
         return null;
     });
     return wallet ?? null;
-}, { refreshOn: [savedAdapter, savedNetwork] });
+}, { refreshOn: [savedAdapter, savedNetwork], eager: true });
 export const signerResolved = signer.resolved;

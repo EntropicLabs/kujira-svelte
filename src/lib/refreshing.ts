@@ -5,6 +5,8 @@ interface CreateRefreshingOptions {
     refreshOn?: Readable<unknown> | Readable<unknown>[];
     // Debounce the reloads of this store by this amount of time.
     debounce?: number;
+    // Forcefully disable lazy loading this store by always having one listener.
+    eager?: boolean;
 }
 
 export type Refreshing<T> = Readable<Promise<T>> & {
@@ -12,7 +14,7 @@ export type Refreshing<T> = Readable<Promise<T>> & {
     resolved: Readable<T | undefined>;
 };
 
-export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { refreshOn = [], debounce = undefined }: CreateRefreshingOptions = {}): Refreshing<T> {
+export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { refreshOn = [], debounce = undefined, eager = false }: CreateRefreshingOptions = {}): Refreshing<T> {
     let resolvedStore: Writable<T | undefined> = writable(undefined);
     let currentPromise: Promise<T> | undefined = undefined;
     const fnPromise = async () => {
@@ -65,6 +67,8 @@ export function refreshing<T>(fn: (old?: T | undefined) => T | Promise<T>, { ref
             unsubs.forEach((unsub) => unsub());
         }
     });
+
+    if (eager) store.subscribe(() => { });
 
     return {
         subscribe: store.subscribe,
